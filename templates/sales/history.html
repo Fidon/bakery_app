@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sales History{% endblock %}
+{% block page_title %}Sales History{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/sales/history.css' %}" />
+<link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Sales History</div>
+    <div class="page-subtitle">
+      {% if request.user.role == 'admin' %}All transactions across all staff{% else %}Your personal sales transactions{% endif %}
+    </div>
+  </div>
+
+  <a href="{% url 'sales:new' %}" class="btn-primary-bakery">
+    <i class="bi bi-cart-plus me-1"></i> New Sale
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-3">
+    <table id="sales-table" class="table table-hover table-bakery w-100">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Reference</th>
+          <th>Date</th>
+          <th>Items</th>
+          <th>Total (TZS)</th>
+          <th>Status</th>
+          {% if request.user.role == 'admin' %}<th>Sold By</th>{% endif %}
+          <th>Recorded At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for txn in transactions %}
+        <tr id="row-{{ txn.pk }}">
+          <td>{{ forloop.counter }}</td>
+          <td class="text-nowrap">
+            <span class="txn-ref">{{ txn.transaction_ref }}</span>
+          </td>
+          <td class="text-nowrap">{{ txn.sale_date|date:"d M Y" }}</td>
+          <td>{{ txn.items.count }} item{{ txn.items.count|pluralize }}</td>
+          <td>{{ txn.total_amount|floatformat:0 }}</td>
+          <td>
+            <span class="status-badge {{ txn.status }}">{{ txn.get_status_display }}</span>
+          </td>
+          {% if request.user.role == 'admin' %}
+          <td class="text-nowrap">
+            <div class="d-flex align-items-center gap-2">
+              <div class="user-avatar-sm">{{ txn.sold_by.full_name|slice:":2"|upper }}</div>
+              {{ txn.sold_by.full_name|title }}
+            </div>
+          </td>
+          {% endif %}
+          <td class="text-nowrap">{{ txn.created_at|date:"d M Y, H:i" }}</td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'sales:detail' txn.pk %}"
+                 class="btn-action view" title="View detail">
+                <i class="bi bi-eye"></i>
+              </a>
+              {% if request.user.role == 'admin' and txn.status == 'completed' %}
+              <button class="btn-action cancel"
+                      title="Cancel transaction"
+                      data-url="{% url 'sales:cancel' txn.pk %}"
+                      data-ref="{{ txn.transaction_ref }}">
+                <i class="bi bi-x-circle"></i>
+              </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Cancel confirm modal (admin only) ── #}
+{% if request.user.role == 'admin' %}
+<div class="modal fade" id="modal-cancel-txn" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content modal-bakery">
+      <div class="modal-header-bakery">
+        <h5 class="modal-title-bakery"><i class="bi bi-exclamation-triangle me-2"></i>Cancel Transaction</h5>
+        <button type="button" class="modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <p style="font-size:.9rem;">Cancel transaction</p>
+        <p><strong id="cancel-txn-ref"></strong>?</p>
+        <p class="text-muted" style="font-size:.8rem;">
+          Stock will be restored for all items in this transaction. This cannot be undone.
+        </p>
+        <input type="hidden" id="cancel-txn-url" />
+      </div>
+      <div class="modal-footer-bakery">
+        <button type="button" class="btn-outline-bakery" data-bs-dismiss="modal">Go Back</button>
+        <button type="button" class="btn-danger-bakery" id="btn-confirm-cancel">
+          <i class="bi bi-x-circle me-1"></i> Cancel Transaction
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+<script src="{% static 'js/sales/history.js' %}"></script>
+{% endblock %}

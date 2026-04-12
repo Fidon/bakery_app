@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Production Report{% endblock %}
+{% block page_title %}Production Report{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports/production.css' %}" />
+<link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Production Report</div>
+    <div class="page-subtitle">Filter and export production logs by date, staff, or item</div>
+  </div>
+</div>
+
+{# ── Filters ── #}
+<div class="card mb-4">
+  <div class="card-body p-3">
+    <form method="GET" action="{% url 'reports:production' %}" id="filter-form">
+      <div class="row g-3 align-items-end">
+        <div class="col-sm-6 col-lg-3">
+          <label class="form-label-bakery">From Date</label>
+          <input type="date" name="date_from" class="form-control form-control-bakery"
+                 value="{{ filters.date_from }}" />
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <label class="form-label-bakery">To Date</label>
+          <input type="date" name="date_to" class="form-control form-control-bakery"
+                 value="{{ filters.date_to }}" />
+        </div>
+        <div class="col-sm-6 col-lg-2">
+          <label class="form-label-bakery">Staff</label>
+          <select name="user_id" class="form-select form-select-bakery">
+            <option value="">All Staff</option>
+            {% for u in users %}
+            <option value="{{ u.pk }}" {% if filters.user_id == u.pk|stringformat:'s' %}selected{% endif %}>
+              {{ u.full_name|title }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+          <label class="form-label-bakery">Item</label>
+          <select name="item_id" class="form-select form-select-bakery">
+            <option value="">All Items</option>
+            {% for item in items %}
+            <option value="{{ item.pk }}" {% if filters.item_id == item.pk|stringformat:'s' %}selected{% endif %}>
+              {{ item.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-12 col-lg-2 d-flex gap-2">
+          <button type="submit" class="btn-primary-bakery flex-fill">
+            <i class="bi bi-funnel me-1"></i> Filter
+          </button>
+          <a href="{% url 'reports:production' %}" class="btn-outline-bakery flex-fill text-center text-decoration-none">
+            Clear
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ── Stat cards ── #}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon gold"><i class="bi bi-list-ol"></i></div>
+      <div>
+        <div class="stat-value">{{ total_entries }}</div>
+        <div class="stat-label">Log Entries</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-stack"></i></div>
+      <div>
+        <div class="stat-value">{{ total_qty|intcomma }}</div>
+        <div class="stat-label">Total Units Produced</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-people"></i></div>
+      <div>
+        <div class="stat-value">{{ unique_staff }}</div>
+        <div class="stat-label">Staff Logged</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon rust"><i class="bi bi-trophy"></i></div>
+      <div>
+        <div class="stat-value" style="font-size:1rem;">
+          {% if top_item %}{{ top_item.snack_item__name }}{% else %}—{% endif %}
+        </div>
+        <div class="stat-label">Top Produced Item</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Table ── #}
+<div class="card">
+  <div class="card-body p-3">
+    <table id="production-report-table" class="table table-hover table-bakery w-100">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Date</th>
+          <th>Snack Item</th>
+          <th>Unit</th>
+          <th>Quantity</th>
+          <th>Logged By</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td class="text-nowrap">{{ log.production_date|date:"d M Y" }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="item-icon"><i class="bi bi-basket"></i></div>
+              <span class="fw-500">{{ log.snack_item.name }}</span>
+            </div>
+          </td>
+          <td class="text-nowrap">{{ log.snack_item.get_unit_display }}</td>
+          <td class="qty-col">{{ log.quantity|intcomma }}</td>
+          <td class="text-nowrap">{{ log.logged_by.full_name|title }}</td>
+          <td class="note-cell"
+            {% if log.notes %}
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-bs-title="{{ log.notes }}"
+            {% endif %}>{{ log.notes|default:'—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if logs %}
+      <tfoot>
+        <tr class="totals-row">
+          <td colspan="4" class="text-end fw-bold">Total</td>
+          <td class="fw-bold" id="tfoot-qty">—</td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+<script src="{% static 'js/reports/production.js' %}"></script>
+{% endblock %}

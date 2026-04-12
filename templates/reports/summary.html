@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Summary Report{% endblock %}
+{% block page_title %}Summary Report{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports/summary.css' %}" />
+<link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Summary Report</div>
+    <div class="page-subtitle">Cross-department overview — production, sales, and waste</div>
+  </div>
+</div>
+
+{# ── Date filter ── #}
+<div class="card mb-4">
+  <div class="card-body p-3">
+    <form method="GET" action="{% url 'reports:summary' %}">
+      <div class="row g-3 align-items-end">
+        <div class="col-sm-6 col-lg-3">
+          <label class="form-label-bakery">From Date</label>
+          <input type="date" name="date_from" class="form-control form-control-bakery"
+                 value="{{ filters.date_from }}" />
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <label class="form-label-bakery">To Date</label>
+          <input type="date" name="date_to" class="form-control form-control-bakery"
+                 value="{{ filters.date_to }}" />
+        </div>
+        <div class="col-auto d-flex gap-2">
+          <button type="submit" class="btn-primary-bakery">
+            <i class="bi bi-funnel me-1"></i> Filter
+          </button>
+          <a href="{% url 'reports:summary' %}" class="btn-outline-bakery text-decoration-none">
+            Clear
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ── Stat cards ── #}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon gold"><i class="bi bi-stack"></i></div>
+      <div>
+        <div class="stat-value">{{ prod_total_qty|intcomma }}</div>
+        <div class="stat-label">Units Produced</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+      <div>
+        <div class="stat-value">{{ sale_total_amount|floatformat:0|intcomma }}</div>
+        <div class="stat-label">Revenue (TZS)</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-receipt"></i></div>
+      <div>
+        <div class="stat-value">{{ sale_total_count }}</div>
+        <div class="stat-label">Transactions</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon rust"><i class="bi bi-trash"></i></div>
+      <div>
+        <div class="stat-value">{{ waste_total_qty|intcomma }}</div>
+        <div class="stat-label">Units Wasted</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-check-circle"></i></div>
+      <div>
+        <div class="stat-value">{{ waste_approved_qty|intcomma }}</div>
+        <div class="stat-label">Approved Waste</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="stat-icon brown"><i class="bi bi-clock-history"></i></div>
+      <div>
+        <div class="stat-value">{{ waste_pending_count }}</div>
+        <div class="stat-label">Pending Waste</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Production table ── #}
+<div class="section-label mb-2"><i class="bi bi-graph-up me-2"></i>Production Logs</div>
+<div class="card mb-4">
+  <div class="card-body p-3">
+    <table id="summary-prod-table" class="table table-hover table-bakery w-100">
+      <thead>
+        <tr>
+          <th>#</th><th>Date</th><th>Item</th><th>Qty</th><th>Logged By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in prod_logs %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td class="text-nowrap">{{ log.production_date|date:"d M Y" }}</td>
+          <td>{{ log.snack_item.name }}</td>
+          <td>{{ log.quantity|intcomma }}</td>
+          <td class="text-nowrap">{{ log.logged_by.full_name|title }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Sales table ── #}
+<div class="section-label mb-2"><i class="bi bi-graph-up-arrow me-2"></i>Sales Transactions</div>
+<div class="card mb-4">
+  <div class="card-body p-3">
+    <table id="summary-sales-table" class="table table-hover table-bakery w-100">
+      <thead>
+        <tr>
+          <th>#</th><th>Date</th><th>Reference</th><th>Total (TZS)</th><th>Sold By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for txn in sale_transactions %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td class="text-nowrap">{{ txn.sale_date|date:"d M Y" }}</td>
+          <td class="text-nowrap"><a href="{% url 'sales:detail' txn.pk %}" class="ref-link">{{ txn.transaction_ref }}</a></td>
+          <td>{{ txn.total_amount|floatformat:0|intcomma }}</td>
+          <td class="text-nowrap">{{ txn.sold_by.full_name|title }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if sale_transactions %}
+      <tfoot>
+        <tr class="totals-row">
+          <td colspan="3" class="text-end fw-bold">Grand Total</td>
+          <td class="fw-bold">{{ sale_total_amount|floatformat:0|intcomma }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+
+{# ── Waste table ── #}
+<div class="section-label mb-2"><i class="bi bi-file-earmark-bar-graph me-2"></i>Waste Reports</div>
+<div class="card mb-4">
+  <div class="card-body p-3">
+    <table id="summary-waste-table" class="table table-hover table-bakery w-100">
+      <thead>
+        <tr>
+          <th>#</th><th>Date</th><th>Item</th><th>Qty</th><th>Reported By</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in waste_reports %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td class="text-nowrap">{{ r.waste_date|date:"d M Y" }}</td>
+          <td>{{ r.snack_item.name }}</td>
+          <td>{{ r.quantity|intcomma }}</td>
+          <td class="text-nowrap">{{ r.reported_by.full_name|title }}</td>
+          <td><span class="status-badge {{ r.status }}">{{ r.get_status_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+<script src="{% static 'js/reports/summary.js' %}"></script>
+{% endblock %}

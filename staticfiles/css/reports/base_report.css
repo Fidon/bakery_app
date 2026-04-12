@@ -1,0 +1,136 @@
+.item-icon {
+  width: 30px;
+  height: 30px;
+  background: var(--clr-amber-light);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clr-amber);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.fw-500 {
+  font-weight: 500;
+}
+
+.qty-pill {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+  background: var(--clr-amber-light);
+  color: var(--clr-amber);
+  display: inline-block;
+}
+
+.totals-row {
+  background: var(--clr-amber-light) !important;
+  font-size: 0.875rem;
+}
+.totals-row td {
+  padding: 0.7rem 1rem;
+  color: var(--clr-brown);
+}
+
+.ref-link {
+  color: var(--clr-amber);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.82rem;
+}
+.ref-link:hover {
+  color: var(--clr-rust);
+  text-decoration: underline;
+}
+
+.section-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--clr-brown);
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+.status-badge.approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+.status-badge.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Filter card */
+.card .form-control-bakery,
+.card .form-select-bakery {
+  height: 2.5rem;
+  font-size: 0.855rem;
+}
+
+/* Items summary chips in sales report */
+.items-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.item-chip {
+  background: var(--clr-amber-light);
+  color: var(--clr-brown);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+/* reason column — truncate long text */
+.table-bakery .note-cell {
+  max-width: 130px;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  cursor: default;
+}
+
+/* DataTable button overrides */
+.dt-buttons .btn-outline-button1 {
+  color: #4b5563;
+  border-color: #d1d5db;
+}
+.dt-buttons .btn-outline-button1:hover {
+  background: #4b5563;
+  color: #fff;
+  border-color: #4b5563;
+}
+.dt-buttons .btn-outline-button2 {
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+.dt-buttons .btn-outline-button2:hover {
+  background: #059669;
+  color: #fff;
+  border-color: #059669;
+}
+.dt-buttons .btn-outline-button3 {
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+.dt-buttons .btn-outline-button3:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}

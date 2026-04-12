@@ -1,0 +1,58 @@
+.info-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: var(--clr-amber-light);
+  border: 1px solid #ede0cc;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: var(--clr-brown);
+}
+.info-note i {
+  color: var(--clr-amber);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.info-note a {
+  color: var(--clr-amber);
+  font-weight: 600;
+  text-decoration: none;
+}
+.info-note a:hover {
+  color: var(--clr-rust);
+  text-decoration: underline;
+}
+
+.error-alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Tom Select overrides to match bakery theme */
+.ts-wrapper.form-control,
+.ts-wrapper .ts-control,
+.ts-wrapper.form-select {
+  border: 1.5px solid #ddd6cc;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #2d1f1f;
+}
+.ts-wrapper.focus .ts-control,
+.ts-wrapper .ts-control:focus-within {
+  border-color: var(--clr-amber);
+  box-shadow: 0 0 0 3px rgba(190, 106, 21, 0.12);
+}
+.ts-dropdown .option.selected,
+.ts-dropdown .option:hover {
+  background: var(--clr-amber-light);
+  color: var(--clr-brown);
+}

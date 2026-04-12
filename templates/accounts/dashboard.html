@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/dashboard.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+{# ════════════ ADMIN DASHBOARD ════════════ #}
+{% if request.user.role == 'admin' %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Good day, {{ request.user.full_name|title }} 👋</div>
+    <div class="page-subtitle">Here's what's happening at the bakery today — {{ today|date:"l, d F Y" }}</div>
+  </div>
+</div>
+
+{# Stat cards #}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon gold"><i class="bi bi-box-seam"></i></div>
+      <div>
+        <div class="stat-value">{{ production_today|intcomma }}</div>
+        <div class="stat-label">Units Produced Today</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+      <div>
+        <div class="stat-value">{{ sales_amount_today|floatformat:0|intcomma }}</div>
+        <div class="stat-label">Sales Today (TZS) · {{ sales_count_today }} txn{{ sales_count_today|pluralize }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon rust"><i class="bi bi-exclamation-triangle"></i></div>
+      <div>
+        <div class="stat-value">{{ pending_waste }}</div>
+        <div class="stat-label">Pending Waste Approvals</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon brown"><i class="bi bi-basket2"></i></div>
+      <div>
+        <div class="stat-value">{{ active_items }}</div>
+        <div class="stat-label">Active Snack Items</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Quick links #}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="section-label">Quick Actions</div>
+  </div>
+  <div class="col-6 col-sm-4 col-lg-2">
+    <a href="{% url 'inventory:item_list' %}" class="quick-link-card">
+      <i class="bi bi-box-seam"></i>
+      <span>Snack Items</span>
+    </a>
+  </div>
+  <div class="col-6 col-sm-4 col-lg-2">
+    <a href="{% url 'production:history' %}" class="quick-link-card">
+      <i class="bi bi-clock-history"></i>
+      <span>Production Logs</span>
+    </a>
+  </div>
+  <div class="col-6 col-sm-4 col-lg-2">
+    <a href="{% url 'sales:history' %}" class="quick-link-card">
+      <i class="bi bi-receipt"></i>
+      <span>Sales History</span>
+    </a>
+  </div>
+  <div class="col-6 col-sm-4 col-lg-2">
+    <a href="{% url 'waste:pending' %}" class="quick-link-card {% if pending_waste %}has-alert{% endif %}">
+      <i class="bi bi-exclamation-triangle"></i>
+      <span>Pending Waste</span>
+      {% if pending_waste %}<span class="quick-link-badge">{{ pending_waste }}</span>{% endif %}
+    </a>
+  </div>
+  <div class="col-6 col-sm-4 col-lg-2">
+    <a href="{% url 'reports:summary' %}" class="quick-link-card">
+      <i class="bi bi-bar-chart-line"></i>
+      <span>Summary Report</span>
+    </a>
+  </div>
+  <div class="col-6 col-sm-4 col-lg-2">
+    <a href="{% url 'accounts:user_list' %}" class="quick-link-card">
+      <i class="bi bi-people"></i>
+      <span>Manage Users</span>
+    </a>
+  </div>
+</div>
+
+{# Recent activity #}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header-custom">
+        <span class="card-title"><i class="bi bi-receipt me-2"></i>Recent Sales</span>
+        <a href="{% url 'sales:history' %}" class="view-all-link">View all</a>
+      </div>
+      <div class="card-body p-0 table-responsive">
+        {% if recent_sales %}
+        <table class="table table-bakery mb-0">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Date</th>
+              <th>Amount (TZS)</th>
+              <th>By</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for txn in recent_sales %}
+            <tr>
+              <td>
+                <a href="{% url 'sales:detail' txn.pk %}" class="txn-ref-link">
+                  {{ txn.transaction_ref }}
+                </a>
+              </td>
+              <td>{{ txn.sale_date|date:"d M y" }}</td>
+              <td>{{ txn.total_amount|floatformat:0|intcomma }}</td>
+              <td>{{ txn.sold_by.full_name|title|truncatechars:14 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-table-state">
+          <i class="bi bi-receipt"></i>
+          <p>No sales recorded yet.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header-custom">
+        <span class="card-title"><i class="bi bi-clock-history me-2"></i>Recent Production</span>
+        <a href="{% url 'production:history' %}" class="view-all-link">View all</a>
+      </div>
+      <div class="card-body p-0 table-responsive">
+        {% if recent_production %}
+        <table class="table table-bakery mb-0">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Date</th>
+              <th>By</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in recent_production %}
+            <tr>
+              <td>{{ log.snack_item.name }}</td>
+              <td><span class="qty-pill">{{ log.quantity|intcomma }}</span></td>
+              <td>{{ log.production_date|date:"d M y" }}</td>
+              <td>{{ log.logged_by.full_name|title|truncatechars:14 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-table-state">
+          <i class="bi bi-clock-history"></i>
+          <p>No production logged yet.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+
+{# ════════════ PRODUCTION DASHBOARD ════════════ #}
+{% if request.user.role == 'production' %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Good day, {{ request.user.full_name|title }} 👋</div>
+    <div class="page-subtitle">{{ today|date:"l, d F Y" }}</div>
+  </div>
+  <a href="{% url 'production:log' %}" class="btn-primary-bakery">
+    <i class="bi bi-plus-lg me-1"></i> Log Production
+  </a>
+</div>
+
+{# Stat cards #}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6">
+    <div class="stat-card">
+      <div class="stat-icon gold"><i class="bi bi-calendar-day"></i></div>
+      <div>
+        <div class="stat-value">{{ my_today_total|intcomma }}</div>
+        <div class="stat-label">Units Produced Today</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-calendar-month"></i></div>
+      <div>
+        <div class="stat-value">{{ month_total|intcomma }}</div>
+        <div class="stat-label">Your Total This Month</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  {# Today's log #}
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header-custom">
+        <span class="card-title"><i class="bi bi-check2-all me-2"></i>Today's Production</span>
+        <a href="{% url 'production:log' %}" class="btn-primary-bakery btn-sm-bakery">
+          <i class="bi bi-plus-lg me-1"></i> Log More
+        </a>
+      </div>
+      <div class="card-body p-0 table-responsive">
+        {% if my_today_logs %}
+        <table class="table table-bakery mb-0">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in my_today_logs %}
+            <tr>
+              <td>{{ log.snack_item.name }}</td>
+              <td><span class="qty-pill">{{ log.quantity|intcomma }}</span></td>
+              <td class="text-muted">{{ log.notes|default:'—'|truncatechars:30 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-table-state">
+          <i class="bi bi-inbox"></i>
+          <p>Nothing logged today yet.<br>
+            <a href="{% url 'production:log' %}">Log production now →</a>
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# Available items #}
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header-custom">
+        <span class="card-title"><i class="bi bi-basket me-2"></i>Available Items</span>
+        <a href="{% url 'inventory:item_list' %}" class="view-all-link">View all</a>
+      </div>
+      <div class="card-body p-0 table-responsive">
+        {% if active_items %}
+        <table class="table table-bakery mb-0">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Unit</th>
+              <th>In Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in active_items %}
+            <tr>
+              <td>{{ item.name }}</td>
+              <td>{{ item.get_unit_display }}</td>
+              <td>
+                <span class="stock-pill {% if item.current_stock == 0 %}out{% elif item.current_stock < 10 %}low{% else %}ok{% endif %}">
+                  {{ item.current_stock|intcomma }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-table-state">
+          <i class="bi bi-basket"></i>
+          <p>No active snack items found.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+
+{# ════════════ SALES DASHBOARD ════════════ #}
+{% if request.user.role == 'sales' %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Good day, {{ request.user.full_name|title }} 👋</div>
+    <div class="page-subtitle">{{ today|date:"l, d F Y" }}</div>
+  </div>
+  <a href="{% url 'sales:new' %}" class="btn-primary-bakery">
+    <i class="bi bi-cart-plus me-1"></i> New Sale
+  </a>
+</div>
+
+{# Stat cards #}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+      <div>
+        <div class="stat-value">{{ my_sales_amount_today|floatformat:0|intcomma }}</div>
+        <div class="stat-label">Your Sales Today (TZS)</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon gold"><i class="bi bi-receipt"></i></div>
+      <div>
+        <div class="stat-value">{{ my_sales_count_today }}</div>
+        <div class="stat-label">Transaction{{ my_sales_count_today|pluralize }} Today</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-calendar-month"></i></div>
+      <div>
+        <div class="stat-value">{{ month_total|floatformat:0|intcomma }}</div>
+        <div class="stat-label">Your Sales This Month (TZS)</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-basket2"></i></div>
+      <div>
+        <div class="stat-value">{{ available_items }}</div>
+        <div class="stat-label">Items Available in Stock</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Top item + recent sales #}
+<div class="row g-4">
+
+  {% if top_item %}
+  <div class="col-12">
+    <div class="top-item-banner">
+      <div class="top-item-icon"><i class="bi bi-trophy-fill"></i></div>
+      <div>
+        <div class="top-item-label">Your Top Selling Item This Month</div>
+        <div class="top-item-name">{{ top_item.snack_item__name }}</div>
+      </div>
+      <div class="top-item-qty">
+        <div class="top-item-qty-value">{{ top_item.total_qty|intcomma }}</div>
+        <div class="top-item-qty-label">units sold</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header-custom">
+        <span class="card-title"><i class="bi bi-receipt me-2"></i>Recent Transactions</span>
+        <a href="{% url 'sales:history' %}" class="view-all-link">View all</a>
+      </div>
+      <div class="card-body p-0 table-responsive">
+        {% if recent_sales %}
+        <table class="table table-bakery mb-0">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Date</th>
+              <th>Amount (TZS)</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for txn in recent_sales %}
+            <tr>
+              <td><span class="txn-ref-sm">{{ txn.transaction_ref }}</span></td>
+              <td>{{ txn.sale_date|date:"d M y" }}</td>
+              <td>{{ txn.total_amount|floatformat:0|intcomma }}</td>
+              <td><span class="status-badge {{ txn.status }}">{{ txn.get_status_display }}</span></td>
+              <td>
+                <a href="{% url 'sales:detail' txn.pk %}"
+                   class="btn-action view" title="View detail">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-table-state">
+          <i class="bi bi-receipt"></i>
+          <p>No transactions yet.<br>
+            <a href="{% url 'sales:new' %}">Process your first sale →</a>
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/accounts/dashboard.js' %}"></script>
+{% endblock %}

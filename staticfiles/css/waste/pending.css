@@ -1,0 +1,189 @@
+.item-icon {
+  width: 30px;
+  height: 30px;
+  background: var(--clr-amber-light);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clr-amber);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.fw-500 {
+  font-weight: 500;
+}
+
+.qty-pill {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+  background: var(--clr-amber-light);
+  color: var(--clr-amber);
+  display: inline-block;
+}
+
+.pending-count-badge {
+  background: var(--clr-rust);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.4rem 1rem;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Action buttons */
+.btn-action {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-action.approve {
+  background: #d1fae5;
+  color: #065f46;
+}
+.btn-action.approve:hover {
+  background: #10b981;
+  color: #fff;
+}
+.btn-action.reject {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.btn-action.reject:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Approve button in modal */
+.btn-approve-bakery {
+  background: #10b981;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-approve-bakery:hover {
+  background: #059669;
+}
+
+/* Modal styles (same pattern as sample) */
+.modal-bakery {
+  border-radius: 14px;
+  border: none;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+.modal-header-bakery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid #f0ebe3;
+  background: var(--clr-amber-light);
+  border-radius: 14px 14px 0 0;
+}
+.modal-title-bakery {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--clr-brown);
+  margin: 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #9a7c6e;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 6px;
+  transition: all 0.18s;
+}
+.modal-close:hover {
+  background: #ede0cc;
+  color: var(--clr-brown);
+}
+.modal-footer-bakery {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.4rem;
+  border-top: 1px solid #f0ebe3;
+}
+.btn-danger-bakery {
+  background: #ef4444;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-danger-bakery:hover {
+  background: #dc2626;
+}
+.error-alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* reason column — truncate long text */
+.table-bakery .note-cell {
+  max-width: 130px;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  cursor: default;
+}
+
+/* DataTable button overrides */
+.dt-buttons .btn-outline-button1 {
+  color: #4b5563;
+  border-color: #d1d5db;
+}
+.dt-buttons .btn-outline-button1:hover {
+  background: #4b5563;
+  color: #fff;
+  border-color: #4b5563;
+}
+.dt-buttons .btn-outline-button2 {
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+.dt-buttons .btn-outline-button2:hover {
+  background: #059669;
+  color: #fff;
+  border-color: #059669;
+}
+.dt-buttons .btn-outline-button3 {
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+.dt-buttons .btn-outline-button3:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}

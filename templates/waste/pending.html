@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Pending Approvals{% endblock %}
+{% block page_title %}Pending Approvals{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/waste/pending.css' %}" />
+<link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Pending Approvals</div>
+    <div class="page-subtitle">Review and approve or reject waste reports submitted by staff</div>
+  </div>
+  {% if reports %}
+  <span class="pending-count-badge">
+    <i class="bi bi-clock-history me-1"></i>{{ reports|length }} Pending
+  </span>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-body p-3">
+    <table id="pending-table" class="table table-hover table-bakery w-100">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Reported On</th>
+          <th>Waste Date</th>
+          <th>Snack Item</th>
+          <th>Qty</th>
+          <th>Reason</th>
+          <th>Reported By</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for report in reports %}
+        <tr id="pending-row-{{ report.pk }}">
+          <td>{{ forloop.counter }}</td>
+          <td class="text-nowrap">{{ report.created_at|date:"d M Y H:i" }}</td>
+          <td class="text-nowrap">{{ report.waste_date|date:"d M Y" }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="item-icon"><i class="bi bi-basket"></i></div>
+              <div>
+                <div class="fw-500">{{ report.snack_item.name }}</div>
+                <div class="text-muted" style="font-size:.75rem;">Stock: {{ report.snack_item.current_stock|intcomma }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="qty-pill">{{ report.quantity|intcomma }}</span></td>
+          <td class="note-cell"
+            {% if report.reason %}
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-bs-title="{{ report.reason }}"
+            {% endif %}>{{ report.reason|default:'—' }}</td>
+          <td class="text-nowrap">
+            <div>{{ report.reported_by.full_name|title }}</div>
+            <span class="role-badge {{ report.reported_by.role }}" style="font-size:.6rem;">{{ report.reported_by.get_role_display }}</span>
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <button class="btn-action approve"
+                      title="Approve"
+                      data-pk="{{ report.pk }}"
+                      data-url="{% url 'waste:review' report.pk %}"
+                      data-item="{{ report.snack_item.name }}"
+                      data-qty="{{ report.quantity }}"
+                      data-stock="{{ report.snack_item.current_stock }}">
+                <i class="bi bi-check-lg"></i>
+              </button>
+              <button class="btn-action reject"
+                      title="Reject"
+                      data-pk="{{ report.pk }}"
+                      data-url="{% url 'waste:review' report.pk %}"
+                      data-item="{{ report.snack_item.name }}"
+                      data-qty="{{ report.quantity }}">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Approve Confirm Modal ── #}
+<div class="modal fade" id="modal-approve" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-bakery">
+      <div class="modal-header-bakery">
+        <h5 class="modal-title-bakery"><i class="bi bi-check-circle me-2"></i>Approve Waste Report</h5>
+        <button type="button" class="modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body p-4">
+        <p style="font-size:.9rem;" class="mb-1">Approve waste of <strong id="approve-qty"></strong> × <strong id="approve-item"></strong>?</p>
+        <p class="text-muted mb-3" style="font-size:.8rem;">Current stock: <strong id="approve-stock"></strong>. Stock will be reduced by the wasted quantity.</p>
+        <div id="approve-error" class="error-alert mb-3" style="display:none;">
+          <i class="bi bi-exclamation-circle-fill"></i><span></span>
+        </div>
+        <label class="form-label-bakery" for="approve-notes">Admin Notes (optional)</label>
+        <textarea id="approve-notes" class="form-control form-control-bakery" rows="2" placeholder="Add a note..."></textarea>
+        <input type="hidden" id="approve-url" />
+        <input type="hidden" id="approve-row-id" />
+      </div>
+      <div class="modal-footer-bakery">
+        <button type="button" class="btn-outline-bakery" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn-approve-bakery" id="btn-confirm-approve">
+          <i class="bi bi-check-lg me-1"></i> Approve
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Reject Confirm Modal ── #}
+<div class="modal fade" id="modal-reject" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-bakery">
+      <div class="modal-header-bakery">
+        <h5 class="modal-title-bakery"><i class="bi bi-x-circle me-2"></i>Reject Waste Report</h5>
+        <button type="button" class="modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body p-4">
+        <p style="font-size:.9rem;" class="mb-3">Reject waste of <strong id="reject-qty"></strong> × <strong id="reject-item"></strong>?</p>
+        <label class="form-label-bakery" for="reject-notes">Reason for Rejection <span class="text-danger">*</span></label>
+        <textarea id="reject-notes" class="form-control form-control-bakery" rows="2" placeholder="Explain why this report is rejected..." required></textarea>
+        <div id="reject-error" class="error-alert mt-2" style="display:none;">
+          <i class="bi bi-exclamation-circle-fill"></i><span></span>
+        </div>
+        <input type="hidden" id="reject-url" />
+        <input type="hidden" id="reject-row-id" />
+      </div>
+      <div class="modal-footer-bakery">
+        <button type="button" class="btn-outline-bakery" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn-danger-bakery" id="btn-confirm-reject">
+          <i class="bi bi-x-lg me-1"></i> Reject
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+<script src="{% static 'js/waste/pending.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}New Sale{% endblock %}
+{% block page_title %}New Sale{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/sales/new.css' %}" />
+{% endblock %}
+
+{% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+<script>
+  window.SALE_NEW_URL = "{% url 'sales:new' %}";
+  window.ITEM_PRICE_BASE_URL = "{% url 'sales:get_item_price' '00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', '');
+</script>
+
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">New Sale</div>
+    <div class="page-subtitle">Build a cart and process a sales transaction</div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  {# ── Left — item picker ── #}
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header-custom">
+        <span class="card-title"><i class="bi bi-basket me-2"></i>Add Items to Cart</span>
+      </div>
+      <div class="card-body p-3">
+
+        {# Date #}
+        <div class="mb-3">
+          <label class="form-label-bakery">Sale Date</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+            <input type="date" id="sale-date"
+                   class="form-control form-control-bakery"
+                   value="{{ today }}" max="{{ today }}" />
+          </div>
+        </div>
+
+        {# Item select #}
+        <div class="mb-3">
+          <label class="form-label-bakery">Snack Item</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <select id="item-select" class="form-select form-control-bakery">
+              <option value="">— select/search an item —</option>
+              {% for item in active_items %}
+              <option value="{{ item.pk }}"
+                      data-name="{{ item.name }}"
+                      data-unit="{{ item.get_unit_display }}"
+                      data-price="{{ item.price }}"
+                      data-stock="{{ item.current_stock }}">
+                {{ item.name }} ({{ item.get_unit_display }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        {# Stock and price info #}
+        <div id="item-info-box" class="item-info-box mb-3" style="display:none;">
+          <div class="item-info-row">
+            <span class="item-info-label"><i class="bi bi-cash me-1"></i>Unit Price</span>
+            <span class="item-info-value" id="info-price">—</span>
+          </div>
+          <div class="item-info-row">
+            <span class="item-info-label"><i class="bi bi-box-seam me-1"></i>In Stock</span>
+            <span class="item-info-value" id="info-stock">—</span>
+          </div>
+        </div>
+
+        {# Quantity #}
+        <div class="mb-3">
+          <label class="form-label-bakery">Quantity</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+            <input type="number" id="item-quantity"
+                   class="form-control form-control-bakery"
+                   min="1" placeholder="e.g. 10" />
+            <span class="input-group-text unit-label" id="unit-display">units</span>
+          </div>
+        </div>
+
+        {# Notes #}
+        <div class="mb-4">
+          <label class="form-label-bakery">Transaction Notes <span class="text-muted fw-normal">(optional)</span></label>
+          <textarea id="sale-notes" class="form-control form-control-bakery"
+                    rows="2" placeholder="Any note for this transaction..."></textarea>
+        </div>
+
+        <button id="btn-add-row" class="btn-primary-bakery w-100">
+          <i class="bi bi-cart-plus me-1"></i> Add to Cart
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  {# ── Right — cart ── #}
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header-custom">
+        <span class="card-title"><i class="bi bi-cart3 me-2"></i>Cart</span>
+        <span class="cart-count-pill" id="cart-count">0 items</span>
+      </div>
+      <div class="card-body p-3 d-flex flex-column">
+
+        {# Empty state #}
+        <div id="cart-empty" class="cart-empty-state">
+          <i class="bi bi-cart-x"></i>
+          <p>Cart is empty.<br>Select an item and quantity on the left.</p>
+        </div>
+
+        {# Cart rows #}
+        <div id="cart-rows" class="cart-rows-list" style="display:none;"></div>
+
+        {# Submit area #}
+        <div id="submit-area" class="mt-auto pt-3" style="display:none;">
+          <div id="cart-submit-error" class="error-alert mb-3" style="display:none;">
+            <i class="bi bi-exclamation-circle-fill"></i><span></span>
+          </div>
+          <div class="cart-total-box" id="cart-total-box">
+            <div class="cart-total-row">
+              <span>Items in cart</span>
+              <span id="total-item-count">0</span>
+            </div>
+            <div class="cart-total-row">
+              <span>Total units</span>
+              <span id="total-units">0</span>
+            </div>
+            <div class="cart-total-row grand-total">
+              <span>Total Amount</span>
+              <span id="grand-total">TZS 0</span>
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-3">
+            <button id="btn-clear-cart" class="btn-outline-bakery flex-shrink-0">
+              <i class="bi bi-trash me-1"></i> Clear
+            </button>
+            <button id="btn-checkout" class="btn-primary-bakery flex-fill">
+              <i class="bi bi-check2-all me-1"></i> Checkout
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{# ── Clear cart confirm modal ── #}
+<div class="modal fade" id="modal-clear-cart" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content modal-bakery">
+      <div class="modal-header-bakery">
+        <h5 class="modal-title-bakery"><i class="bi bi-exclamation-triangle me-2"></i>Clear Cart</h5>
+        <button type="button" class="modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <p style="font-size:.9rem;">Remove all items from the cart?</p>
+        <p class="text-muted" style="font-size:.8rem;">This cannot be undone.</p>
+      </div>
+      <div class="modal-footer-bakery">
+        <button type="button" class="btn-outline-bakery" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn-danger-bakery" id="btn-confirm-clear">
+          <i class="bi bi-trash me-1"></i> Clear
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/sales/new.js' %}"></script>
+{% endblock %}

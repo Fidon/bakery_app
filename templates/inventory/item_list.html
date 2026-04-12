@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Snack Items{% endblock %}
+{% block page_title %}Snack Items{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventory/item_list.css' %}" />
+<link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Snack Items</div>
+    <div class="page-subtitle">
+      {% if request.user.role == 'admin' %}Manage inventory items — add, edit, or deactivate snacks{% endif %}
+      {% if request.user.role == 'production' %}View inventory and add new snack items{% endif %}
+      {% if request.user.role == 'sales' %}Browse available snack items{% endif %}
+    </div>
+  </div>
+  {% if request.user.role in 'admin,production' %}
+  <button class="btn-primary-bakery"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#offcanvas-add-item">
+    <i class="bi bi-plus-lg me-1"></i> Add Item
+  </button>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-body p-3">
+    <table id="items-table" class="table table-hover table-bakery w-100">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item Name</th>
+          <th>Unit</th>
+          <th>Price (TZS)</th>
+          <th>In Stock</th>
+          <th>Status</th>
+          <th>Added By</th>
+          <th>Date Added</th>
+          {% if request.user.role == 'admin' %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr id="row-{{ item.pk }}">
+          <td>{{ forloop.counter }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="item-icon">
+                <i class="bi bi-basket"></i>
+              </div>
+              <span class="fw-500">{{ item.name }}</span>
+            </div>
+          </td>
+          <td>{{ item.get_unit_display }}</td>
+          <td>{{ item.price|floatformat:0 }}</td>
+          <td>
+            <span class="stock-pill {% if item.current_stock == 0 %}out{% elif item.current_stock < 10 %}low{% else %}ok{% endif %}">
+              {{ item.current_stock }}
+            </span>
+          </td>
+          <td>
+            {% if item.is_active %}
+              <span class="status-badge active">Active</span>
+            {% else %}
+              <span class="status-badge blocked">Inactive</span>
+            {% endif %}
+          </td>
+          <td>{{ item.created_by.full_name|title|default:'—' }}</td>
+          <td>{{ item.created_at|date:"d M Y" }}</td>
+          {% if request.user.role == 'admin' %}
+          <td>
+            <div class="d-flex gap-1">
+              <button class="btn-action edit"
+                      title="Edit item"
+                      data-url="{% url 'inventory:item_edit' item.pk %}"
+                      data-name="{{ item.name }}"
+                      data-unit="{{ item.unit }}"
+                      data-price="{{ item.price }}"
+                      data-description="{{ item.description|default:'' }}">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn-action {% if item.is_active %}block{% else %}unblock{% endif %}"
+                      title="{% if item.is_active %}Deactivate{% else %}Activate{% endif %}"
+                      data-url="{% url 'inventory:item_toggle_active' item.pk %}">
+                <i class="bi bi-{% if item.is_active %}slash-circle{% else %}check-circle{% endif %}"></i>
+              </button>
+              <button class="btn-action delete"
+                      title="Delete item"
+                      data-url="{% url 'inventory:item_delete' item.pk %}"
+                      data-name="{{ item.name }}">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Add Item Offcanvas ── #}
+{% if request.user.role in 'admin,production' %}
+<div class="offcanvas offcanvas-end offcanvas-bakery" tabindex="-1" id="offcanvas-add-item">
+  <div class="offcanvas-header-bakery">
+    <h5 class="offcanvas-title-bakery"><i class="bi bi-plus-circle me-2"></i>Add Snack Item</h5>
+    <button type="button" class="modal-close" data-bs-dismiss="offcanvas"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="offcanvas-body">
+    <form id="form-add-item" data-url="{% url 'inventory:item_add' %}" autocomplete="off">
+      {% csrf_token %}
+      <div id="add-item-error" class="error-alert mb-3" style="display:none;">
+        <i class="bi bi-exclamation-circle-fill"></i><span></span>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-basket"></i></span>
+          <div class="form-floating flex-fill">
+            <input type="text" id="add-name" name="name"
+                   class="form-control" placeholder="Item Name" required />
+            <label for="add-name">Item Name</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-rulers"></i></span>
+          <div class="form-floating flex-fill">
+            <select id="add-unit" name="unit" class="form-select" required>
+              <option value="">Select unit</option>
+              <option value="piece">Piece</option>
+              <option value="dozen">Dozen</option>
+              <option value="kg">Kilogram (kg)</option>
+              <option value="g">Gram (g)</option>
+              <option value="tray">Tray</option>
+              <option value="pack">Pack</option>
+            </select>
+            <label for="add-unit">Unit</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-cash"></i></span>
+          <div class="form-floating flex-fill">
+            <input type="number" id="add-price" name="price" min="1" step="0.01"
+                   class="form-control" placeholder="Price" required />
+            <label for="add-price">Price (TZS)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="input-group align-items-start">
+          <span class="input-group-text" style="height:80px;align-items:flex-start;padding-top:.85rem;">
+            <i class="bi bi-card-text"></i>
+          </span>
+          <div class="form-floating flex-fill">
+            <textarea id="add-description" name="description"
+                      class="form-control" placeholder="Description"
+                      style="height:80px;resize:none;"></textarea>
+            <label for="add-description">Description (optional)</label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary-bakery w-100" id="btn-save-item">
+        <i class="bi bi-check-lg me-1"></i> Save Item
+      </button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{# ── Edit Item Offcanvas (admin only) ── #}
+{% if request.user.role == 'admin' %}
+<div class="offcanvas offcanvas-end offcanvas-bakery" tabindex="-1" id="offcanvas-edit-item">
+  <div class="offcanvas-header-bakery">
+    <h5 class="offcanvas-title-bakery"><i class="bi bi-pencil me-2"></i>Edit Snack Item</h5>
+    <button type="button" class="modal-close" data-bs-dismiss="offcanvas"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="offcanvas-body">
+    <form id="form-edit-item" autocomplete="off">
+      {% csrf_token %}
+      <div id="edit-item-error" class="error-alert mb-3" style="display:none;">
+        <i class="bi bi-exclamation-circle-fill"></i><span></span>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-basket"></i></span>
+          <div class="form-floating flex-fill">
+            <input type="text" id="edit-name" name="name"
+                   class="form-control" placeholder="Item Name" required />
+            <label for="edit-name">Item Name</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-rulers"></i></span>
+          <div class="form-floating flex-fill">
+            <select id="edit-unit" name="unit" class="form-select" required>
+              <option value="piece">Piece</option>
+              <option value="dozen">Dozen</option>
+              <option value="kg">Kilogram (kg)</option>
+              <option value="g">Gram (g)</option>
+              <option value="tray">Tray</option>
+              <option value="pack">Pack</option>
+            </select>
+            <label for="edit-unit">Unit</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-cash"></i></span>
+          <div class="form-floating flex-fill">
+            <input type="number" id="edit-price" name="price" min="1" step="0.01"
+                   class="form-control" placeholder="Price" required />
+            <label for="edit-price">Price (TZS)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="input-group align-items-start">
+          <span class="input-group-text" style="height:80px;align-items:flex-start;padding-top:.85rem;">
+            <i class="bi bi-card-text"></i>
+          </span>
+          <div class="form-floating flex-fill">
+            <textarea id="edit-description" name="description"
+                      class="form-control" placeholder="Description"
+                      style="height:80px;resize:none;"></textarea>
+            <label for="edit-description">Description (optional)</label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary-bakery w-100" id="btn-update-item">
+        <i class="bi bi-check-lg me-1"></i> Update Item
+      </button>
+    </form>
+  </div>
+</div>
+
+{# ── Delete Confirm Modal ── #}
+<div class="modal fade" id="modal-delete-item" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content modal-bakery">
+      <div class="modal-header-bakery">
+        <h5 class="modal-title-bakery"><i class="bi bi-exclamation-triangle me-2"></i>Confirm Delete</h5>
+        <button type="button" class="modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <p style="font-size:.9rem;">Delete snack item</p>
+        <p><strong id="delete-item-name"></strong>?</p>
+        <p class="text-muted" style="font-size:.8rem;">
+          Items with existing production or sales records cannot be deleted — deactivate them instead.
+        </p>
+        <input type="hidden" id="delete-item-url" />
+      </div>
+      <div class="modal-footer-bakery">
+        <button type="button" class="btn-outline-bakery" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn-danger-bakery" id="btn-confirm-delete">
+          <i class="bi bi-trash me-1"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+<script src="{% static 'js/inventory/item_list.js' %}"></script>
+{% endblock %}

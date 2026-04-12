@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/profile.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Profile summary card -->
+  <div class="col-12 col-lg-4">
+    <div class="card text-center p-4">
+      <div class="profile-avatar mx-auto">
+        {{ request.user.full_name|slice:":2"|upper }}
+      </div>
+      <div class="profile-name mt-3">{{ request.user.full_name|title }}</div>
+      <div class="mt-1">
+        <span class="role-badge {{ request.user.role }}">{{ request.user.get_role_display }}</span>
+      </div>
+      <div class="profile-meta mt-3">
+        <div class="profile-meta-item">
+          <i class="bi bi-at"></i> {{ request.user.username|title }}
+        </div>
+        <div class="profile-meta-item">
+          <i class="bi bi-phone"></i> {{ request.user.phone|default:'Not set' }}
+        </div>
+        <div class="profile-meta-item">
+          <i class="bi bi-calendar3"></i> Joined {{ request.user.created_at|date:"d M Y" }}
+        </div>
+      </div>
+      <div class="d-flex flex-column gap-2 mt-4">
+        <button class="btn-primary-bakery"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvas-edit-profile">
+          <i class="bi bi-pencil me-1"></i> Edit Profile
+        </button>
+        <button class="btn-outline-bakery"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvas-change-password">
+          <i class="bi bi-key me-1"></i> Change Password
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account details card -->
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-header-custom">
+        <span class="card-title">Account Information</span>
+      </div>
+      <div class="card-body p-4">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="info-label">Full Name</div>
+            <div class="info-value" id="display-full-name">{{ request.user.full_name|title }}</div>
+          </div>
+          <div class="col-sm-6">
+            <div class="info-label">Username</div>
+            <div class="info-value">{{ request.user.username|title }}</div>
+          </div>
+          <div class="col-sm-6">
+            <div class="info-label">Phone</div>
+            <div class="info-value" id="display-phone">{{ request.user.phone|default:'—' }}</div>
+          </div>
+          <div class="col-sm-6">
+            <div class="info-label">Role</div>
+            <div class="info-value">{{ request.user.get_role_display }}</div>
+          </div>
+          <div class="col-sm-6">
+            <div class="info-label">Account Status</div>
+            <div class="info-value">
+              <span class="status-badge active">Active</span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="info-label">Member Since</div>
+            <div class="info-value">{{ request.user.created_at|date:"d M Y" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Edit Profile Offcanvas ── -->
+<div class="offcanvas offcanvas-end offcanvas-bakery" tabindex="-1" id="offcanvas-edit-profile">
+  <div class="offcanvas-header-bakery">
+    <h5 class="offcanvas-title-bakery"><i class="bi bi-pencil me-2"></i>Edit Profile</h5>
+    <button type="button" class="modal-close" data-bs-dismiss="offcanvas"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="offcanvas-body">
+    <form id="form-edit-profile" data-url="{% url 'accounts:profile_edit' %}" autocomplete="off">
+      {% csrf_token %}
+      <div id="edit-profile-error" class="error-alert mb-3" style="display:none;">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span></span>
+      </div>
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <div class="form-floating flex-fill">
+            <input type="text" id="profile-full-name" name="full_name"
+                   class="form-control" placeholder="Full Name"
+                   value="{{ request.user.full_name }}" required />
+            <label for="profile-full-name">Full Name</label>
+          </div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-phone"></i></span>
+          <div class="form-floating flex-fill">
+            <input type="text" id="profile-phone" name="phone"
+                   class="form-control" placeholder="Phone"
+                   value="{{ request.user.phone|default:'' }}" />
+            <label for="profile-phone">Phone (optional)</label>
+          </div>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn-primary-bakery w-100" id="btn-save-profile">
+        <i class="bi bi-check-lg me-1"></i> Save Changes
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ── Change Password Offcanvas ── -->
+<div class="offcanvas offcanvas-end offcanvas-bakery" tabindex="-1" id="offcanvas-change-password">
+  <div class="offcanvas-header-bakery">
+    <h5 class="offcanvas-title-bakery"><i class="bi bi-key me-2"></i>Change Password</h5>
+    <button type="button" class="modal-close" data-bs-dismiss="offcanvas"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="offcanvas-body">
+    <form id="form-change-password" data-url="{% url 'accounts:change_password' %}" autocomplete="off">
+      {% csrf_token %}
+      <div id="change-pw-error" class="error-alert mb-3" style="display:none;">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span></span>
+      </div>
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock"></i></span>
+          <div class="form-floating flex-fill">
+            <input type="password" id="current-password" name="current_password"
+                   class="form-control" placeholder="Current Password" required />
+            <label for="current-password">Current Password</label>
+          </div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+          <div class="form-floating flex-fill">
+            <input type="password" id="new-password" name="new_password"
+                   class="form-control" placeholder="New Password" required />
+            <label for="new-password">New Password</label>
+          </div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+          <div class="form-floating flex-fill">
+            <input type="password" id="confirm-password" name="confirm_password"
+                   class="form-control" placeholder="Confirm New Password" required />
+            <label for="confirm-password">Confirm New Password</label>
+          </div>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn-primary-bakery w-100" id="btn-change-pw">
+        <i class="bi bi-check-lg me-1"></i> Update Password
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/accounts/profile.js' %}"></script>
+{% endblock %}

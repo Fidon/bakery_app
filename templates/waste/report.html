@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report Waste{% endblock %}
+{% block page_title %}Report Waste{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/waste/report.css' %}" />
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Report Waste</div>
+    <div class="page-subtitle">Submit a waste entry for admin review and approval</div>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7 col-xl-6">
+    <div class="card">
+      <div class="card-header-custom">
+        <span class="card-title"><i class="bi bi-trash me-2"></i>Waste Report Form</span>
+      </div>
+      <div class="card-body p-4">
+
+        <div id="report-error" class="error-alert mb-3" style="display:none;">
+          <i class="bi bi-exclamation-circle-fill"></i><span></span>
+        </div>
+
+        <form id="form-report-waste" data-url="{% url 'waste:report' %}" autocomplete="off">
+          {% csrf_token %}
+
+          <!-- Snack Item -->
+          <div class="mb-3">
+            <label class="form-label-bakery">Snack Item</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <div class="form-floating flex-fill">
+                    <select id="waste-item-select" class="form-select" name="snack_item" required>
+                    <option value="">— select/search an item —</option>
+                    {% for item in active_items %}
+                        <option value="{{ item.pk }}">{{ item.name }} ({{ item.get_unit_display }})</option>
+                    {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+          <!-- Quantity -->
+          <div class="mb-3">
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-hash"></i></span>
+              <div class="form-floating flex-fill">
+                <input type="number" id="waste-quantity" name="quantity"
+                       class="form-control" placeholder="Quantity"
+                       min="1" required />
+                <label for="waste-quantity">Quantity</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Date -->
+          <div class="mb-3">
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+              <div class="form-floating flex-fill">
+                <input type="date" id="waste-date" name="waste_date"
+                       class="form-control" placeholder="Date" required />
+                <label for="waste-date">Waste Date</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reason -->
+          <div class="mb-4">
+            <label class="form-label-bakery" for="waste-reason">Reason for Waste</label>
+            <textarea id="waste-reason" name="reason"
+                      class="form-control form-control-bakery"
+                      rows="3" placeholder="Describe why this waste occurred..."
+                      required></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary-bakery w-100" id="btn-submit-waste">
+            <i class="bi bi-send me-1"></i> Submit Waste Report
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- Info note -->
+    <div class="info-note mt-3">
+      <i class="bi bi-info-circle-fill"></i>
+      <span>Waste reports are reviewed by Admin before stock is adjusted. You'll see the status in <a href="{% url 'waste:history' %}">Waste History</a>.</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script src="{% static 'js/waste/report.js' %}"></script>
+{% endblock %}

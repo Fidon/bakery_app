@@ -1,0 +1,160 @@
+a.btn-primary-bakery {
+  text-decoration: none;
+}
+
+/* Detail rows in summary card */
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.7rem 1.25rem;
+  border-bottom: 1px solid #f5efe6;
+  font-size: 0.875rem;
+}
+.detail-row:last-child {
+  border-bottom: none;
+}
+.detail-label {
+  color: #9a7c6e;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.detail-value {
+  color: var(--clr-brown);
+  font-weight: 600;
+  text-align: right;
+}
+.detail-row.total-row {
+  background: var(--clr-amber-light);
+  border-top: 2px solid #ede0cc;
+}
+.total-amount {
+  font-size: 1.05rem;
+  color: var(--clr-amber) !important;
+}
+
+.txn-ref {
+  font-family: monospace;
+  font-size: 0.82rem;
+  background: var(--clr-amber-light);
+  padding: 0.15rem 0.5rem;
+  border-radius: 5px;
+  color: var(--clr-amber);
+}
+
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.status-badge.completed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.status-badge.cancelled {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.items-count-pill {
+  background: var(--clr-amber-light);
+  color: var(--clr-amber);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+}
+
+.item-icon-sm {
+  width: 26px;
+  height: 26px;
+  background: var(--clr-amber-light);
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clr-amber);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.qty-pill {
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+  display: inline-block;
+}
+
+.table-total-row td {
+  background: var(--clr-amber-light);
+  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  border-top: 2px solid #ede0cc;
+}
+.fw-700 {
+  font-weight: 700;
+}
+
+/* Modal */
+.modal-bakery {
+  border-radius: 14px;
+  border: none;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+.modal-header-bakery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid #f0ebe3;
+  background: var(--clr-amber-light);
+  border-radius: 14px 14px 0 0;
+}
+.modal-title-bakery {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--clr-brown);
+  margin: 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #9a7c6e;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 6px;
+  transition: all 0.18s;
+}
+.modal-close:hover {
+  background: #ede0cc;
+  color: var(--clr-brown);
+}
+.modal-footer-bakery {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.4rem;
+  border-top: 1px solid #f0ebe3;
+}
+.btn-danger-bakery {
+  background: #ef4444;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-danger-bakery:hover {
+  background: #dc2626;
+}

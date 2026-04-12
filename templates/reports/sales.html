@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Sales Report{% endblock %}
+{% block page_title %}Sales Report{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports/sales.css' %}" />
+<link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Sales Report</div>
+    <div class="page-subtitle">Filter and export completed sales transactions</div>
+  </div>
+</div>
+
+{# ── Filters ── #}
+<div class="card mb-4">
+  <div class="card-body p-3">
+    <form method="GET" action="{% url 'reports:sales' %}">
+      <div class="row g-3 align-items-end">
+        <div class="col-sm-6 col-lg-3">
+          <label class="form-label-bakery">From Date</label>
+          <input type="date" name="date_from" class="form-control form-control-bakery"
+                 value="{{ filters.date_from }}" />
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <label class="form-label-bakery">To Date</label>
+          <input type="date" name="date_to" class="form-control form-control-bakery"
+                 value="{{ filters.date_to }}" />
+        </div>
+        <div class="col-sm-6 col-lg-2">
+          <label class="form-label-bakery">Staff</label>
+          <select name="user_id" class="form-select form-select-bakery">
+            <option value="">All Staff</option>
+            {% for u in users %}
+            <option value="{{ u.pk }}" {% if filters.user_id == u.pk|stringformat:'s' %}selected{% endif %}>
+              {{ u.full_name|title }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+          <label class="form-label-bakery">Item</label>
+          <select name="item_id" class="form-select form-select-bakery">
+            <option value="">All Items</option>
+            {% for item in items %}
+            <option value="{{ item.pk }}" {% if filters.item_id == item.pk|stringformat:'s' %}selected{% endif %}>
+              {{ item.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-12 col-lg-2 d-flex gap-2">
+          <button type="submit" class="btn-primary-bakery flex-fill">
+            <i class="bi bi-funnel me-1"></i> Filter
+          </button>
+          <a href="{% url 'reports:sales' %}" class="btn-outline-bakery flex-fill text-center text-decoration-none">
+            Clear
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ── Stat cards ── #}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon gold"><i class="bi bi-receipt"></i></div>
+      <div>
+        <div class="stat-value">{{ total_transactions }}</div>
+        <div class="stat-label">Transactions</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+      <div>
+        <div class="stat-value">{{ grand_total|floatformat:0|intcomma }}</div>
+        <div class="stat-label">Total Revenue (TZS)</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-people"></i></div>
+      <div>
+        <div class="stat-value">{{ unique_staff }}</div>
+        <div class="stat-label">Staff Sold</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon rust"><i class="bi bi-trophy"></i></div>
+      <div>
+        <div class="stat-value" style="font-size:1rem;">
+          {% if top_item %}{{ top_item.snack_item__name }}{% else %}—{% endif %}
+        </div>
+        <div class="stat-label">Top Selling Item</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Table ── #}
+<div class="card">
+  <div class="card-body p-3">
+    <table id="sales-report-table" class="table table-hover table-bakery w-100">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Date</th>
+          <th>Reference</th>
+          <th>Items Sold</th>
+          <th>Total (TZS)</th>
+          <th>Sold By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for txn in transactions %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td class="text-nowrap">{{ txn.sale_date|date:"d M Y" }}</td>
+          <td class="text-nowrap">
+            <a href="{% url 'sales:detail' txn.pk %}" class="ref-link">{{ txn.transaction_ref }}</a>
+          </td>
+          <td>
+            <div class="items-summary">
+              {% for item in txn.items.all %}
+              <span class="item-chip">{{ item.snack_item.name }} ×{{ item.quantity }}</span>
+              {% endfor %}
+            </div>
+          </td>
+          <td class="amount-col">{{ txn.total_amount|floatformat:0|intcomma }}</td>
+          <td class="text-nowrap">{{ txn.sold_by.full_name|title }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if transactions %}
+      <tfoot>
+        <tr class="totals-row">
+          <td colspan="4" class="text-end fw-bold">Grand Total</td>
+          <td class="fw-bold">{{ grand_total|floatformat:0|intcomma }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+<script src="{% static 'js/reports/sales.js' %}"></script>
+{% endblock %}

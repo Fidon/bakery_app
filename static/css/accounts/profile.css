@@ -1,0 +1,86 @@
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  background: var(--clr-amber);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.profile-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--clr-brown);
+}
+.profile-meta {
+  text-align: left;
+  margin-top: 0.5rem;
+}
+.profile-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b5c5c;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #f5eeee;
+}
+.profile-meta-item i {
+  color: var(--clr-amber);
+  width: 16px;
+}
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #9a7c6e;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+.info-value {
+  font-size: 0.9rem;
+  color: var(--clr-brown);
+  font-weight: 500;
+}
+.offcanvas-bakery {
+  width: 400px !important;
+}
+.offcanvas-header-bakery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid #f0ebe3;
+  background: var(--clr-amber-light);
+}
+.offcanvas-title-bakery {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--clr-brown);
+  margin: 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #9a7c6e;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 6px;
+  transition: all 0.18s;
+}
+.modal-close:hover {
+  background: #ede0cc;
+  color: var(--clr-brown);
+}
+.form-error-msg {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.82rem;
+  color: #991b1b;
+}

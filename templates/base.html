@@ -1,0 +1,265 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="shortcut icon" href="{% static 'images/logo.png' %}" />
+  <title>{% block title %}{% endblock %} | Tumaini Bakery</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+  <!-- Tom Select -->
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  
+  <link href="{% static 'css/base.css' %}" rel="stylesheet" />
+
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body data-role="{{ request.user.role }}">
+
+<!-- ── Sidebar overlay (mobile tap-to-close) ── -->
+<div id="sidebar-overlay"></div>
+
+<!-- ════════════════ SIDEBAR ════════════════ -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><i class="bi bi-basket2-fill"></i></div>
+    <div class="brand-name">Tumaini Bakery</div>
+    <div class="brand-tagline">Management System</div>
+  </div>
+
+  <div class="sidebar-nav">
+
+    <!-- Dashboard -->
+    <div class="sidebar-section-label">Overview</div>
+    <a href="{% url 'accounts:dashboard' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+
+    <!-- Inventory — admin full, production add, sales view -->
+    {% if request.user.role in 'admin,production,sales' %}
+    <div class="sidebar-section-label">Inventory</div>
+    <a href="{% url 'inventory:item_list' %}"
+       class="nav-item-link {% if 'inventory' in request.resolver_match.namespace %}active{% endif %}">
+      <i class="bi bi-box-seam"></i> Snack Items
+    </a>
+    {% endif %}
+
+    <!-- Production -->
+    {% if request.user.role == 'admin' or request.user.role == 'production' %}
+    <div class="sidebar-section-label">Production</div>
+    <a href="{% url 'production:log' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'log' %}active{% endif %}">
+      <i class="bi bi-plus-circle"></i> Log Production
+    </a>
+    <a href="{% url 'production:history' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'history' and 'production' in request.resolver_match.namespace %}active{% endif %}">
+      <i class="bi bi-clock-history"></i> History
+    </a>
+    {% endif %}
+
+    <!-- Sales -->
+    {% if request.user.role == 'admin' or request.user.role == 'sales' %}
+    <div class="sidebar-section-label">Sales</div>
+    <a href="{% url 'sales:new' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'new' %}active{% endif %}">
+      <i class="bi bi-cart-plus"></i> New Sale
+    </a>
+    <a href="{% url 'sales:history' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'history' and 'sales' in request.resolver_match.namespace %}active{% endif %}">
+      <i class="bi bi-receipt"></i> Sales History
+    </a>
+    {% endif %}
+
+    <!-- Waste -->
+    <div class="sidebar-section-label">Waste</div>
+    {% if request.user.role == 'admin' %}
+    <a href="{% url 'waste:pending' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'pending' %}active{% endif %}">
+      <i class="bi bi-exclamation-triangle"></i> Pending Approvals
+      <span class="nav-badge {% if pending_waste_count %}has-count{% endif %}" id="waste-badge">
+        {{ pending_waste_count|default:'' }}
+      </span>
+    </a>
+    {% endif %}
+    {% if request.user.role == 'production' or request.user.role == 'sales' %}
+    <a href="{% url 'waste:report' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'report' %}active{% endif %}">
+      <i class="bi bi-trash"></i> Report Waste
+    </a>
+     {% endif %}
+    <a href="{% url 'waste:history' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'history' and 'waste' in request.resolver_match.namespace %}active{% endif %}">
+      <i class="bi bi-archive"></i> Waste History
+    </a>
+
+    <!-- Reports -->
+    {% if request.user.role == 'admin' or request.user.role == 'production' or request.user.role == 'sales' %}
+    <div class="sidebar-section-label">Reports</div>
+    {% if request.user.role == 'admin' %}
+    <a href="{% url 'reports:summary' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'summary' %}active{% endif %}">
+      <i class="bi bi-bar-chart-line"></i> Summary Report
+    </a>
+    {% endif %}
+    {% if request.user.role == 'admin' or request.user.role == 'production' %}
+    <a href="{% url 'reports:production' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'production' and 'reports' in request.resolver_match.namespace %}active{% endif %}">
+      <i class="bi bi-graph-up"></i> Production Report
+    </a>
+    {% endif %}
+    {% if request.user.role == 'admin' or request.user.role == 'sales' %}
+    <a href="{% url 'reports:sales' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'sales' and 'reports' in request.resolver_match.namespace %}active{% endif %}">
+      <i class="bi bi-graph-up-arrow"></i> Sales Report
+    </a>
+    {% endif %}
+    <a href="{% url 'reports:waste' %}"
+       class="nav-item-link {% if request.resolver_match.url_name == 'waste' and 'reports' in request.resolver_match.namespace %}active{% endif %}">
+      <i class="bi bi-file-earmark-bar-graph"></i> Waste Report
+    </a>
+    {% endif %}
+
+    <!-- Admin — user management -->
+    {% if request.user.role == 'admin' %}
+    <div class="sidebar-section-label">Administration</div>
+    <a href="{% url 'accounts:user_list' %}"
+       class="nav-item-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-people"></i> Manage Users
+    </a>
+    {% endif %}
+
+    <!-- Profile — all roles -->
+    <div class="sidebar-section-label">Account</div>
+    <a href="{% url 'accounts:profile' %}"
+      class="nav-item-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+      <i class="bi bi-person-circle"></i> Profile
+    </a>
+
+  </div><!-- end sidebar-nav -->
+
+  <div class="sidebar-footer">
+    <a href="{% url 'accounts:profile' %}" style="text-decoration:none;">
+      <div class="user-avatar" style="width:34px;height:34px;font-size:.8rem;margin-bottom:.5rem;">
+        {{ request.user.full_name|slice:":2"|upper }}
+      </div>
+      <div class="sidebar-user-name">{{ request.user.full_name|title }}</div>
+      <div class="sidebar-user-role">{{ request.user.get_role_display }}</div>
+    </a>
+    <a href="{% url 'accounts:logout' %}" class="sidebar-logout">
+      <i class="bi bi-box-arrow-left"></i> Sign out
+    </a>
+  </div>
+</nav>
+
+<!-- ════════════════ TOPBAR ════════════════ -->
+<header id="topbar">
+  <button id="sidebar-toggle" aria-label="Toggle sidebar">
+    <i class="bi bi-list"></i>
+  </button>
+
+  <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+
+  <div class="topbar-right">
+    <!-- Waste notification bell (admin only) -->
+    {% if request.user.role == 'admin' and pending_waste_count %}
+    <a href="{% url 'waste:pending' %}" class="position-relative text-decoration-none" title="{{ pending_waste_count }} pending waste approvals">
+      <i class="bi bi-bell-fill" style="font-size:1.15rem;color:var(--clr-amber);"></i>
+      <span style="position:absolute;top:-5px;right:-6px;background:var(--clr-rust);color:#fff;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:99px;">
+        {{ pending_waste_count }}
+      </span>
+    </a>
+    {% endif %}
+
+    <div class="topbar-user-pill" id="user-pill-toggle">
+      <div class="user-avatar">{{ request.user.full_name|slice:":2"|upper }}</div>
+      <span>{{ request.user.full_name|title|truncatechars:18 }}</span>
+      <span class="role-badge {{ request.user.role }}">{{ request.user.get_role_display }}</span>
+      <i class="bi bi-chevron-down user-pill-chevron" id="user-pill-chevron"></i>
+    </div>
+
+    {# User dropdown #}
+    <div class="user-dropdown" id="user-dropdown">
+      <div class="user-dropdown-header">
+        <div class="user-avatar" style="width:36px;height:36px;font-size:.85rem;flex-shrink:0;">
+          {{ request.user.full_name|slice:":2"|upper }}
+        </div>
+        <div>
+          <div class="user-dropdown-name">{{ request.user.full_name|title }}</div>
+          <div class="user-dropdown-role">{{ request.user.get_role_display }}</div>
+        </div>
+      </div>
+      <div class="user-dropdown-divider"></div>
+      <a href="{% url 'accounts:profile' %}" class="user-dropdown-item">
+        <i class="bi bi-person-circle"></i> Profile
+      </a>
+      <div class="user-dropdown-divider"></div>
+      <a href="{% url 'accounts:logout' %}" class="user-dropdown-item danger">
+        <i class="bi bi-box-arrow-right"></i> Sign Out
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════ MAIN CONTENT ════════════════ -->
+<main id="main-content">
+
+  <!-- Django messages → toasts -->
+  {% if messages %}
+  <div id="toast-container">
+    {% for message in messages %}
+    <div class="toast-item {{ message.tags }}" data-autohide="true">
+      <span class="toast-icon">
+        {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill"></i>
+        {% elif message.tags == 'error' %}<i class="bi bi-x-circle-fill"></i>
+        {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-triangle-fill"></i>
+        {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+      </span>
+      <div class="toast-body">{{ message }}</div>
+      <button class="toast-close" onclick="this.parentElement.remove()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ════════════════ SCRIPTS ════════════════ -->
+<!-- jQuery -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<!-- Bootstrap 5 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="{% static 'js/base.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+
+<footer id="main-footer">
+  <div class="footer-inner">
+    <div class="footer-col">
+      <a href="https://wa.me/255713529019" target="_blank" rel="noopener" class="footer-brand">
+        <i class="bi bi-whatsapp"></i> Design by Fidon-Developer
+      </a>
+    </div>
+    <div class="footer-col footer-center">
+      <i class="bi bi-shop"></i> Tumaini Bakery &nbsp;|&nbsp;
+      <i class="bi bi-geo-alt"></i> Dodoma &nbsp;|&nbsp;
+      <i class="bi bi-telephone"></i> +255 625 511 541
+    </div>
+    <div class="footer-col footer-right">
+      All rights reserved &copy; 2026
+    </div>
+  </div>
+</footer>
+</body>
+</html>

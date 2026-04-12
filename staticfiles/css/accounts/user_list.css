@@ -1,0 +1,210 @@
+.user-avatar-sm {
+  width: 32px;
+  height: 32px;
+  background: var(--clr-amber);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.status-badge.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+.status-badge.blocked {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.btn-action {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-action.edit {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+.btn-action.edit:hover {
+  background: #3b82f6;
+  color: #fff;
+}
+.btn-action.block {
+  background: #fef3c7;
+  color: #92400e;
+}
+.btn-action.block:hover {
+  background: #f59e0b;
+  color: #fff;
+}
+.btn-action.unblock {
+  background: #d1fae5;
+  color: #065f46;
+}
+.btn-action.unblock:hover {
+  background: #10b981;
+  color: #fff;
+}
+.btn-action.reset-pw {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+.btn-action.reset-pw:hover {
+  background: #7c3aed;
+  color: #fff;
+}
+.btn-action.delete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.btn-action.delete:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Datatable button overrides to match bakery theme */
+.dt-buttons .btn-outline-button1 {
+  color: #4b5563;
+  border-color: #d1d5db;
+}
+.dt-buttons .btn-outline-button1:hover {
+  background: #4b5563;
+  color: #fff;
+  border-color: #4b5563;
+}
+.dt-buttons .btn-outline-button2 {
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+.dt-buttons .btn-outline-button2:hover {
+  background: #059669;
+  color: #fff;
+  border-color: #059669;
+}
+.dt-buttons .btn-outline-button3 {
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+.dt-buttons .btn-outline-button3:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}
+
+/* Modal styles — shared across pages */
+.modal-bakery {
+  border-radius: 14px;
+  border: none;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+.modal-header-bakery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid #f0ebe3;
+  background: var(--clr-amber-light);
+  border-radius: 14px 14px 0 0;
+}
+.modal-title-bakery {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--clr-brown);
+  margin: 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #9a7c6e;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 6px;
+  transition: all 0.18s;
+}
+.modal-close:hover {
+  background: #ede0cc;
+  color: var(--clr-brown);
+}
+.modal-footer-bakery {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.4rem;
+  border-top: 1px solid #f0ebe3;
+}
+.btn-danger-bakery {
+  background: #ef4444;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-danger-bakery:hover {
+  background: #dc2626;
+}
+
+.error-alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Offcanvas shared styles */
+.offcanvas-bakery {
+  width: 420px !important;
+}
+
+.offcanvas-header-bakery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid #f0ebe3;
+  background: var(--clr-amber-light);
+}
+.offcanvas-title-bakery {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--clr-brown);
+  margin: 0;
+}
+
+.info-hint {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.8rem;
+  color: #1e40af;
+}

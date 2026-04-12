@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Log Production{% endblock %}
+{% block page_title %}Log Production{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/production/log.css' %}" />
+{% endblock %}
+
+{% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Log Production</div>
+    <div class="page-subtitle">Record today's production quantities per snack item</div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  {# ── Left — item picker ── #}
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header-custom">
+        <span class="card-title"><i class="bi bi-basket me-2"></i>Add Items to Batch</span>
+      </div>
+      <div class="card-body p-3">
+
+        {# Date picker #}
+        <div class="mb-3">
+          <label class="form-label-bakery">Production Date</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+            <input type="date" id="production-date"
+                   class="form-control form-control-bakery"
+                   value="{{ today }}" max="{{ today }}" />
+          </div>
+        </div>
+
+        {# Item select #}
+        <div class="mb-3">
+          <label class="form-label-bakery">Snack Item</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <select id="item-select" class="form-select form-control-bakery">
+              <option value="">— select/search an item —</option>
+              {% for item in active_items %}
+              <option value="{{ item.pk }}"
+                      data-name="{{ item.name }}"
+                      data-unit="{{ item.get_unit_display }}">
+                {{ item.name }} ({{ item.get_unit_display }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        {# Quantity #}
+        <div class="mb-3">
+          <label class="form-label-bakery">Quantity</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+            <input type="number" id="item-quantity"
+                   class="form-control form-control-bakery"
+                   min="1" placeholder="e.g. 48" />
+            <span class="input-group-text unit-label" id="unit-display">units</span>
+          </div>
+        </div>
+
+        {# Notes #}
+        <div class="mb-4">
+          <label class="form-label-bakery">Notes <span class="text-muted fw-normal">(optional)</span></label>
+          <textarea id="item-notes" class="form-control form-control-bakery"
+                    rows="2" placeholder="Any note for this item..."></textarea>
+        </div>
+
+        <button id="btn-add-row" class="btn-primary-bakery w-100">
+          <i class="bi bi-plus-lg me-1"></i> Add to Batch
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  {# ── Right — batch cart ── #}
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header-custom">
+        <span class="card-title"><i class="bi bi-list-check me-2"></i>Current Batch</span>
+        <span class="batch-count-pill" id="batch-count">0 items</span>
+      </div>
+      <div class="card-body p-3 d-flex flex-column">
+
+        {# Empty state #}
+        <div id="batch-empty" class="batch-empty-state">
+          <i class="bi bi-inbox"></i>
+          <p>No items added yet.<br>Select an item and quantity on the left.</p>
+        </div>
+
+        {# Batch rows #}
+        <div id="batch-rows" class="batch-rows-list" style="display:none;"></div>
+
+        {# Submit area #}
+        <div id="submit-area" class="mt-auto pt-3" style="display:none;">
+          <div id="batch-submit-error" class="error-alert mb-3" style="display:none;">
+            <i class="bi bi-exclamation-circle-fill"></i><span></span>
+          </div>
+          <div class="batch-summary" id="batch-summary"></div>
+          <button id="btn-submit-batch" class="btn-primary-bakery w-100 mt-3">
+            <i class="bi bi-check2-all me-1"></i> Submit Production Batch
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{# ── Confirm clear modal ── #}
+<div class="modal fade" id="modal-clear-batch" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content modal-bakery">
+      <div class="modal-header-bakery">
+        <h5 class="modal-title-bakery"><i class="bi bi-exclamation-triangle me-2"></i>Clear Batch</h5>
+        <button type="button" class="modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <p style="font-size:.9rem;">Remove all items from the current batch?</p>
+        <p class="text-muted" style="font-size:.8rem;">This cannot be undone.</p>
+      </div>
+      <div class="modal-footer-bakery">
+        <button type="button" class="btn-outline-bakery" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn-danger-bakery" id="btn-confirm-clear">
+          <i class="bi bi-trash me-1"></i> Clear
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/production/log.js' %}"></script>
+{% endblock %}

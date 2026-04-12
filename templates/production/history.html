@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Production History{% endblock %}
+{% block page_title %}Production History{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/production/history.css' %}" />
+<link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Production History</div>
+    <div class="page-subtitle">
+      {% if request.user.role == 'admin' %}All production logs across all staff{% else %}Your personal production logs{% endif %}
+    </div>
+  </div>
+  {% if request.user.role == 'production' %}
+  <a href="{% url 'production:log' %}" class="btn-primary-bakery">
+    <i class="bi bi-plus-lg me-1"></i> Log Production
+  </a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-body p-3">
+    <table id="history-table" class="table table-hover table-bakery w-100">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Date</th>
+          <th>Snack Item</th>
+          <th>Unit</th>
+          <th>Qty Produced</th>
+          {% if request.user.role == 'admin' %}<th>Logged By</th>{% endif %}
+          <th>Notes</th>
+          <th>Logged At</th>
+          {% if request.user.role == 'admin' %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr id="row-{{ log.pk }}">
+          <td>{{ forloop.counter }}</td>
+          <td class="text-nowrap">{{ log.production_date|date:"d M Y" }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="item-icon-sm"><i class="bi bi-basket"></i></div>
+              {{ log.snack_item.name }}
+            </div>
+          </td>
+          <td>{{ log.snack_item.get_unit_display }}</td>
+          <td><span class="qty-pill">{{ log.quantity }}</span></td>
+          {% if request.user.role == 'admin' %}
+          <td class="text-nowrap">
+            <div class="d-flex align-items-center gap-2">
+              <div class="user-avatar-sm">{{ log.logged_by.full_name|slice:":2"|upper }}</div>
+              {{ log.logged_by.full_name|title }}
+            </div>
+          </td>
+          {% endif %}
+          <td class="note-cell"
+            {% if log.notes %}
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-bs-title="{{ log.notes }}"
+            {% endif %}>{{ log.notes|default:'—' }}</td>
+          <td class="text-nowrap">{{ log.created_at|date:"d M Y, H:i" }}</td>
+          {% if request.user.role == 'admin' %}
+          <td>
+            <button class="btn-action delete"
+                    title="Delete and reverse stock"
+                    data-url="{% url 'production:delete' log.pk %}"
+                    data-item="{{ log.snack_item.name }}"
+                    data-qty="{{ log.quantity }}"
+                    data-date="{{ log.production_date|date:'d M Y' }}">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Delete confirm modal (admin only) ── #}
+{% if request.user.role == 'admin' %}
+<div class="modal fade" id="modal-delete-log" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content modal-bakery">
+      <div class="modal-header-bakery">
+        <h5 class="modal-title-bakery"><i class="bi bi-exclamation-triangle me-2"></i>Delete Log Entry</h5>
+        <button type="button" class="modal-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <p style="font-size:.9rem;">Delete production log for</p>
+        <p><strong id="delete-log-item"></strong></p>
+        <p style="font-size:.85rem;" class="text-muted">
+          Qty: <strong id="delete-log-qty"></strong> &nbsp;|&nbsp; Date: <strong id="delete-log-date"></strong>
+        </p>
+        <p class="text-muted" style="font-size:.8rem;">
+          Stock will be reduced by this quantity. This cannot be undone.
+        </p>
+        <input type="hidden" id="delete-log-url" />
+      </div>
+      <div class="modal-footer-bakery">
+        <button type="button" class="btn-outline-bakery" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn-danger-bakery" id="btn-confirm-delete-log">
+          <i class="bi bi-trash me-1"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+<script src="{% static 'js/production/history.js' %}"></script>
+{% endblock %}

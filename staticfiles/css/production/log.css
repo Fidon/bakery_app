@@ -1,0 +1,234 @@
+/* Item picker card */
+.unit-label {
+  background: var(--clr-amber-light);
+  color: var(--clr-amber);
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 60px;
+  justify-content: center;
+}
+
+/* Batch count pill in card header */
+.batch-count-pill {
+  background: var(--clr-amber);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+}
+
+/* Empty state */
+.batch-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 3rem 1rem;
+  color: #c4a882;
+  text-align: center;
+}
+.batch-empty-state i {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+.batch-empty-state p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Batch rows list */
+.batch-rows-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.batch-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--clr-amber-pale);
+  border: 1px solid #ede0cc;
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+  animation: fadeInRow 0.2s ease;
+}
+@keyframes fadeInRow {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.batch-row-icon {
+  width: 34px;
+  height: 34px;
+  background: var(--clr-amber-light);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clr-amber);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.batch-row-info {
+  flex: 1;
+  min-width: 0;
+}
+.batch-row-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--clr-brown);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.batch-row-meta {
+  font-size: 0.75rem;
+  color: #9a7c6e;
+  margin-top: 1px;
+}
+
+.batch-row-qty {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--clr-amber);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-remove-row {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.btn-remove-row:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Batch summary footer */
+.batch-summary {
+  background: var(--clr-amber-light);
+  border: 1px solid #ede0cc;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: var(--clr-brown);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.batch-summary strong {
+  color: var(--clr-amber);
+}
+
+/* Clear batch link */
+.btn-clear-batch {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.btn-clear-batch:hover {
+  color: #dc2626;
+}
+
+/* Error alert */
+.error-alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Modal */
+.modal-bakery {
+  border-radius: 14px;
+  border: none;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+.modal-header-bakery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid #f0ebe3;
+  background: var(--clr-amber-light);
+  border-radius: 14px 14px 0 0;
+}
+.modal-title-bakery {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--clr-brown);
+  margin: 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #9a7c6e;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 6px;
+  transition: all 0.18s;
+}
+.modal-close:hover {
+  background: #ede0cc;
+  color: var(--clr-brown);
+}
+.modal-footer-bakery {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.4rem;
+  border-top: 1px solid #f0ebe3;
+}
+.btn-danger-bakery {
+  background: #ef4444;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-danger-bakery:hover {
+  background: #dc2626;
+}
