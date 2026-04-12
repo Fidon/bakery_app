@@ -10,7 +10,7 @@ ALLOWED_HOSTS = ['developer255.pythonanywhere.com', '127.0.0.1']
 # Session expires when browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# session cookie lives max 8 hours regardless (adjust to your shift length)
+# session cookie lives max 8 hours 
 SESSION_COOKIE_AGE = 60 * 60 * 8  # 8 hours in seconds
 
 DJANGO_APPS = [

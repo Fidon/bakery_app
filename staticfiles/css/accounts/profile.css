@@ -76,11 +76,20 @@
   background: #ede0cc;
   color: var(--clr-brown);
 }
-.form-error-msg {
+.error-alert {
   background: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: 8px;
-  padding: 0.6rem 0.9rem;
-  font-size: 0.82rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
   color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.form-control:disabled {
+  background: #f5f0eb;
+  color: #9a8a80;
+  cursor: not-allowed;
+  border-color: #e0d8d0;
 }

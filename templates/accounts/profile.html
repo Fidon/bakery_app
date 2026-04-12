@@ -61,7 +61,7 @@
           </div>
           <div class="col-sm-6">
             <div class="info-label">Username</div>
-            <div class="info-value">{{ request.user.username|title }}</div>
+            <div class="info-value" id="display-username">{{ request.user.username|title }}</div>
           </div>
           <div class="col-sm-6">
             <div class="info-label">Phone</div>
@@ -98,32 +98,54 @@
     <form id="form-edit-profile" data-url="{% url 'accounts:profile_edit' %}" autocomplete="off">
       {% csrf_token %}
       <div id="edit-profile-error" class="error-alert mb-3" style="display:none;">
-        <i class="bi bi-exclamation-circle-fill"></i>
-        <span></span>
+        <i class="bi bi-exclamation-circle-fill"></i><span></span>
       </div>
+
+      <!-- Full Name — editable for admin only, visible but disabled for others -->
       <div class="mb-3">
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-person"></i></span>
           <div class="form-floating flex-fill">
-            <input type="text" id="profile-full-name" name="full_name"
-                   class="form-control" placeholder="Full Name"
-                   value="{{ request.user.full_name }}" required />
-            <label for="profile-full-name">Full Name</label>
+            <input type="text" id="edit-full-name" name="full_name"
+                  class="form-control" placeholder="Full Name"
+                  value="{{ request.user.full_name|title }}"
+                  {% if request.user.role != 'admin' %}disabled{% endif %} />
+            <label for="edit-full-name">
+              Full Name
+              {% if request.user.role != 'admin' %}
+                <span style="font-size:.72rem;color:#aaa;"> — contact admin to change</span>
+              {% endif %}
+            </label>
           </div>
         </div>
       </div>
+
+      <!-- Username — all roles -->
       <div class="mb-3">
         <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-phone"></i></span>
+          <span class="input-group-text"><i class="bi bi-at"></i></span>
           <div class="form-floating flex-fill">
-            <input type="text" id="profile-phone" name="phone"
-                   class="form-control" placeholder="Phone"
-                   value="{{ request.user.phone|default:'' }}" />
-            <label for="profile-phone">Phone (optional)</label>
+            <input type="text" id="edit-username" name="username"
+                  class="form-control" placeholder="Username"
+                  value="{{ request.user.username|title }}" required />
+            <label for="edit-username">Username</label>
           </div>
         </div>
       </div>
-      
+
+      <!-- Phone — all roles -->
+      <div class="mb-4">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+          <div class="form-floating flex-fill">
+            <input type="text" id="edit-phone" name="phone"
+                  class="form-control" placeholder="Phone (optional)"
+                  value="{{ request.user.phone|default:'' }}" />
+            <label for="edit-phone">Phone (optional)</label>
+          </div>
+        </div>
+      </div>
+
       <button type="submit" class="btn-primary-bakery w-100" id="btn-save-profile">
         <i class="bi bi-check-lg me-1"></i> Save Changes
       </button>

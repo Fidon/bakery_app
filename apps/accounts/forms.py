@@ -44,7 +44,36 @@ class UserEditForm(forms.ModelForm):
 class ProfileEditForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['full_name', 'phone']
+        fields = ['full_name', 'username', 'phone']
+
+    def __init__(self, *args, **kwargs):
+        self.user_role = kwargs.pop('user_role', None)
+        super().__init__(*args, **kwargs)
+        # Non-admin users cannot change full_name — exclude it from validation
+        if self.user_role != 'admin':
+            self.fields.pop('full_name')
+    
+    def clean_full_name(self):
+        full_name = self.cleaned_data.get('full_name', '').strip()
+        names = [name for name in full_name.split() if name]
+        if not (2 <= len(names) <= 3):
+            raise forms.ValidationError('Full name must contain 2 or 3 names.')
+        
+        for name in names:
+            if len(name) < 3:
+                raise forms.ValidationError(f'Each part of the name ("{name}") must be at least 3 characters long.')
+        return full_name
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '').strip().lower()
+        if len(username) < 3:
+            raise forms.ValidationError('Username must be at least 3 characters long.')
+        if not username:
+            raise forms.ValidationError('Username is required.')
+        # Check not taken by another user
+        if User.objects.filter(username=username).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('This username is already taken.')
+        return username
 
 
 class ChangePasswordForm(forms.Form):

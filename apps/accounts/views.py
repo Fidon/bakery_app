@@ -43,7 +43,6 @@ def logout_view(request):
     return redirect('accounts:login')
 
 
-
 @login_required
 def set_new_password(request):
     """Force password change on first login."""
@@ -220,7 +219,7 @@ def profile(request):
 @login_required
 def profile_edit(request):
     if request.method == 'POST':
-        form = ProfileEditForm(request.POST, instance=request.user)
+        form = ProfileEditForm(request.POST, instance=request.user, user_role=request.user.role)
         if form.is_valid():
             form.save()
             return JsonResponse({'success': True, 'message': 'Profile updated successfully.'})

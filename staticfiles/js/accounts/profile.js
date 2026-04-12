@@ -30,9 +30,11 @@ $(function () {
         if (res.success) {
           bootstrap.Offcanvas.getInstance("#offcanvas-edit-profile").hide();
           showToast("success", res.message);
-          // Update displayed values without reload
-          $("#display-full-name").text($("#profile-full-name").val());
-          $("#display-phone").text($("#profile-phone").val() || "—");
+          if ($("#edit-full-name").not(":disabled").length) {
+            $("#display-full-name").text($("#edit-full-name").val());
+          }
+          $("#display-username").text($("#edit-username").val());
+          $("#display-phone").text($("#edit-phone").val() || "—");
         } else {
           const sms = Object.values(res.errors).flat().join(" ");
           showFormError("#edit-profile-error", sms);
