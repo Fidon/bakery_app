@@ -1,3 +1,4 @@
+import re
 from django import forms
 from django.contrib.auth import get_user_model
 
@@ -8,14 +9,28 @@ class UserAddForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['full_name', 'username', 'phone', 'role']
+    
+    def clean_full_name(self):
+        full_name = self.cleaned_data.get('full_name', '').strip().lower()
+        names = [name for name in full_name.split() if name]
+        if not (2 <= len(names) <= 3):
+            raise forms.ValidationError('Full name must contain 2 or 3 names.')
+        for name in names:
+            if len(name) < 3:
+                raise forms.ValidationError(f'Each part of the name ("{name}") must be at least 3 characters long.')
+        return full_name
 
     def clean_username(self):
         username = self.cleaned_data.get('username', '').strip().lower()
+        if not username:
+            raise forms.ValidationError('Username is required.')
         if len(username) < 3:
             raise forms.ValidationError('Username must be at least 3 characters long.')
+        if not re.match(r'^[a-z][a-z0-9]*$', username):
+            raise forms.ValidationError('Username must start with a letter and contain only letters or numbers.')
         if User.objects.filter(username__iexact=username).exists():
             raise forms.ValidationError('This username is already taken.')
-        return username.lower()
+        return username
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -30,15 +45,28 @@ class UserEditForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['full_name', 'username', 'phone', 'role']
+        
+    def clean_full_name(self):
+        full_name = self.cleaned_data.get('full_name', '').strip().lower()
+        names = [name for name in full_name.split() if name]
+        if not (2 <= len(names) <= 3):
+            raise forms.ValidationError('Full name must contain 2 or 3 names.')
+        for name in names:
+            if len(name) < 3:
+                raise forms.ValidationError(f'Each part of the name ("{name}") must be at least 3 characters long.')
+        return full_name
 
     def clean_username(self):
         username = self.cleaned_data.get('username', '').strip().lower()
+        if not username:
+            raise forms.ValidationError('Username is required.')
         if len(username) < 3:
             raise forms.ValidationError('Username must be at least 3 characters long.')
-        qs = User.objects.filter(username__iexact=username).exclude(pk=self.instance.pk)
-        if qs.exists():
+        if not re.match(r'^[a-z][a-z0-9]*$', username):
+            raise forms.ValidationError('Username must start with a letter and contain only letters or numbers.')
+        if User.objects.filter(username__iexact=username).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError('This username is already taken.')
-        return username.lower()
+        return username
 
 
 class ProfileEditForm(forms.ModelForm):
@@ -49,16 +77,15 @@ class ProfileEditForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user_role = kwargs.pop('user_role', None)
         super().__init__(*args, **kwargs)
-        # Non-admin users cannot change full_name — exclude it from validation
+        # Non-admin users cannot change full_name
         if self.user_role != 'admin':
             self.fields.pop('full_name')
     
     def clean_full_name(self):
-        full_name = self.cleaned_data.get('full_name', '').strip()
+        full_name = self.cleaned_data.get('full_name', '').strip().lower()
         names = [name for name in full_name.split() if name]
         if not (2 <= len(names) <= 3):
             raise forms.ValidationError('Full name must contain 2 or 3 names.')
-        
         for name in names:
             if len(name) < 3:
                 raise forms.ValidationError(f'Each part of the name ("{name}") must be at least 3 characters long.')
@@ -66,11 +93,12 @@ class ProfileEditForm(forms.ModelForm):
 
     def clean_username(self):
         username = self.cleaned_data.get('username', '').strip().lower()
-        if len(username) < 3:
-            raise forms.ValidationError('Username must be at least 3 characters long.')
         if not username:
             raise forms.ValidationError('Username is required.')
-        # Check not taken by another user
+        if len(username) < 3:
+            raise forms.ValidationError('Username must be at least 3 characters long.')
+        if not re.match(r'^[a-z][a-z0-9]*$', username):
+            raise forms.ValidationError('Username must start with a letter and contain only letters or numbers.')
         if User.objects.filter(username=username).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError('This username is already taken.')
         return username

@@ -234,16 +234,6 @@
   {% block content %}{% endblock %}
 </main>
 
-<!-- ════════════════ SCRIPTS ════════════════ -->
-<!-- jQuery -->
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<!-- Bootstrap 5 -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script src="{% static 'js/base.js' %}"></script>
-
-{% block extra_js %}{% endblock %}
-
 <footer id="main-footer">
   <div class="footer-inner">
     <div class="footer-col">
@@ -253,7 +243,7 @@
     </div>
     <div class="footer-col footer-center">
       <i class="bi bi-shop"></i> Tumaini Bakery &nbsp;|&nbsp;
-      <i class="bi bi-geo-alt"></i> Dodoma &nbsp;|&nbsp;
+      <i class="bi bi-geo-alt"></i> Morogoro &nbsp;|&nbsp;
       <i class="bi bi-telephone"></i> +255 625 511 541
     </div>
     <div class="footer-col footer-right">
@@ -261,5 +251,15 @@
     </div>
   </div>
 </footer>
+
+<!-- ════════════════ SCRIPTS ════════════════ -->
+<!-- jQuery -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<!-- Bootstrap 5 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="{% static 'js/base.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

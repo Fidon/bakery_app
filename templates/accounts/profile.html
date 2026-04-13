@@ -17,15 +17,15 @@
       <div class="profile-avatar mx-auto">
         {{ request.user.full_name|slice:":2"|upper }}
       </div>
-      <div class="profile-name mt-3">{{ request.user.full_name|title }}</div>
+      <div class="profile-name mt-3" id="summ-fullname">{{ request.user.full_name|title }}</div>
       <div class="mt-1">
         <span class="role-badge {{ request.user.role }}">{{ request.user.get_role_display }}</span>
       </div>
       <div class="profile-meta mt-3">
-        <div class="profile-meta-item">
+        <div class="profile-meta-item" id="summ-username">
           <i class="bi bi-at"></i> {{ request.user.username|title }}
         </div>
-        <div class="profile-meta-item">
+        <div class="profile-meta-item" id="summ-phone">
           <i class="bi bi-phone"></i> {{ request.user.phone|default:'Not set' }}
         </div>
         <div class="profile-meta-item">
@@ -109,7 +109,7 @@
             <input type="text" id="edit-full-name" name="full_name"
                   class="form-control" placeholder="Full Name"
                   value="{{ request.user.full_name|title }}"
-                  {% if request.user.role != 'admin' %}disabled{% endif %} />
+                  {% if request.user.role != 'admin' %}disabled{% else %}required{% endif %} />
             <label for="edit-full-name">
               Full Name
               {% if request.user.role != 'admin' %}

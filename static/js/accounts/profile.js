@@ -13,6 +13,15 @@ $(function () {
     setTimeout(() => $t.fadeTo(400, 0, () => $t.remove()), 4500);
   }
 
+  /* ── Convert string to title case ── */
+  function toTitleCase(str) {
+    return str
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
   /* ── Edit profile ── */
   $("#form-edit-profile").on("submit", function (e) {
     e.preventDefault();
@@ -31,10 +40,21 @@ $(function () {
           bootstrap.Offcanvas.getInstance("#offcanvas-edit-profile").hide();
           showToast("success", res.message);
           if ($("#edit-full-name").not(":disabled").length) {
-            $("#display-full-name").text($("#edit-full-name").val());
+            $("#display-full-name").text(
+              toTitleCase($("#edit-full-name").val()),
+            );
+            $("#summ-fullname").text(toTitleCase($("#edit-full-name").val()));
           }
-          $("#display-username").text($("#edit-username").val());
+          $("#display-username").text(toTitleCase($("#edit-username").val()));
+          $("#summ-username").html(
+            "<i class='bi bi-at'></i> " +
+              toTitleCase($("#edit-username").val()),
+          );
           $("#display-phone").text($("#edit-phone").val() || "—");
+          $("#summ-phone").html(
+            "<i class='bi bi-phone'></i> " +
+              ($("#edit-phone").val() || "Not set"),
+          );
         } else {
           const sms = Object.values(res.errors).flat().join(" ");
           showFormError("#edit-profile-error", sms);
