@@ -14,10 +14,8 @@
   <!-- Profile summary card -->
   <div class="col-12 col-lg-4">
     <div class="card text-center p-4">
-      <div class="profile-avatar mx-auto">
-        {{ request.user.full_name|slice:":2"|upper }}
-      </div>
-      <div class="profile-name mt-3" id="summ-fullname">{{ request.user.full_name|title }}</div>
+      <div class="profile-avatar mx-auto"></div>
+      <div class="profile-name mt-3" id="summ-fullname"></div>
       <div class="mt-1">
         <span class="role-badge {{ request.user.role }}">{{ request.user.get_role_display }}</span>
       </div>

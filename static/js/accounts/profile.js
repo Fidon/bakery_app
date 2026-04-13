@@ -44,6 +44,7 @@ $(function () {
               toTitleCase($("#edit-full-name").val()),
             );
             $("#summ-fullname").text(toTitleCase($("#edit-full-name").val()));
+            updateNameUI($("#edit-full-name").val());
           }
           $("#display-username").text(toTitleCase($("#edit-username").val()));
           $("#summ-username").html(

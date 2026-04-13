@@ -104,6 +104,46 @@ $(function () {
       }
     }
   });
+
+  /* ── Fullname initials ── */
+  window.updateNameUI = function (fullname) {
+    if (!fullname) return;
+
+    var nameParts = fullname.trim().split(/\s+/);
+    var initials = "";
+    if (nameParts.length >= 2) {
+      initials = nameParts[0].charAt(0) + nameParts[1].charAt(0);
+    } else if (nameParts.length === 1) {
+      initials = nameParts[0].charAt(0);
+    }
+
+    var titleCased = fullname
+      .toLowerCase()
+      .split(" ")
+      .map((word) => {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      })
+      .join(" ");
+
+    var truncated = titleCased;
+    if (titleCased.length > 15) {
+      truncated = titleCased.substring(0, 12) + "...";
+    }
+
+    $(".user-avatar").text(initials.toUpperCase());
+    if ($(".profile-avatar").length) {
+      $(".profile-avatar").text(initials.toUpperCase());
+    }
+    $("#header-fullname").text(truncated);
+    $("#dropdown-fullname").text(titleCased);
+    $("#sidebar-fullname").text(titleCased);
+    if ($("#summ-fullname").length) {
+      $("#summ-fullname").text(titleCased);
+    }
+
+    $("#user-initials").data("fullname", fullname);
+  };
+  updateNameUI($("#user-initials").data("fullname"));
 });
 
 /* ── Searchable select — global utility ── */
