@@ -71,8 +71,8 @@
               <span class="status-badge blocked">Inactive</span>
             {% endif %}
           </td>
-          <td>{{ item.created_by.full_name|title|default:'—' }}</td>
-          <td>{{ item.created_at|date:"d M Y" }}</td>
+          <td class="text-nowrap">{{ item.created_by.full_name|title|default:'—' }}</td>
+          <td class="text-nowrap">{{ item.created_at|date:"d M Y" }}</td>
           {% if request.user.role == 'admin' %}
           <td>
             <div class="d-flex gap-1">
