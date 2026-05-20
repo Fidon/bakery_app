@@ -4,7 +4,7 @@
 > **Contact:** fidonamos@gmail.com | WhatsApp: +255 713 529 019  
 > **Client:** Tumaini Bakery, Dodoma, Tanzania | +255 625 511 541  
 > **Project Start:** April 2026  
-> **Stack:** Django · PostgreSQL · Bootstrap 5 · jQuery · DataTables  
+> **Stack:** Django · PostgreSQL/SQLite · Bootstrap 5 · jQuery · DataTables  
 
 ---
 
@@ -21,10 +21,10 @@
 9. [Module Breakdown](#9-module-breakdown)
 10. [UI Architecture & Conventions](#10-ui-architecture--conventions)
 11. [JavaScript Conventions](#11-javascript-conventions)
-12. [Deployment — PythonAnywhere (Free Tier)](#13-deployment--pythonanywhere-free-tier)
-13. [Build Progress — Phase Tracker](#14-build-progress--phase-tracker)
-14. [Phase 4 — What to Build Next](#15-phase-4--what-to-build-next)
-15. [Known Gotchas & Hard-Won Lessons](#16-known-gotchas--hard-won-lessons)
+12. [Deployment — PythonAnywhere (Free Tier)](#12-deployment--pythonanywhere-free-tier)
+13. [Build Progress — Phase Tracker](#13-build-progress--phase-tracker)
+14. [Upgrading to PostgreSQL](#14-upgrading-to-postgresql)
+15. [Known Gotchas & Hard-Won Lessons](#15-known-gotchas--hard-won-lessons)
 
 ---
 
@@ -40,12 +40,12 @@ A role-based web application that digitalizes daily operations for a bakery busi
 | **Production** | Log daily snack production, view own history |
 | **Sales** | Process sales transactions (POS-style), view own history |
 
-**Five core modules:**
+**Five core modules (all complete):**
 1. **Inventory** — Snack item master list with real-time stock tracking
 2. **Production** — Daily batch production logging per item
 3. **Sales** — POS-style cart checkout with transaction history
-4. **Waste Management** — Two-step report → approve workflow (Phase 4)
-5. **Reports & Analytics** — Filterable, printable, exportable reports (Phase 4)
+4. **Waste Management** — Two-step report → approve workflow with stock deduction
+5. **Reports & Analytics** — Filterable, printable, exportable reports per role
 
 ---
 
@@ -86,9 +86,9 @@ bakery_project/                     ← root
     │   ├── wsgi.py
     │   └── asgi.py
     │
-    ├── static/                     ← source static files
+    ├── static/
     │   ├── css/
-    │   │   ├── base.css            ← global palette, layout, components
+    │   │   ├── base.css
     │   │   ├── accounts/
     │   │   │   ├── login.css
     │   │   │   ├── user_list.css
@@ -99,13 +99,23 @@ bakery_project/                     ← root
     │   │   ├── production/
     │   │   │   ├── log.css
     │   │   │   └── history.css
-    │   │   └── sales/
-    │   │       ├── new.css
-    │   │       ├── history.css
-    │   │       └── detail.css
+    │   │   ├── sales/
+    │   │   │   ├── new.css
+    │   │   │   ├── history.css
+    │   │   │   └── detail.css
+    │   │   ├── waste/
+    │   │   │   ├── report.css
+    │   │   │   ├── history.css
+    │   │   │   └── pending.css
+    │   │   └── reports/
+    │   │       ├── base_report.css     ← shared report stylesheet
+    │   │       ├── production.css      ← @import base_report.css + overrides
+    │   │       ├── sales.css
+    │   │       ├── waste.css
+    │   │       └── summary.css
     │   │
     │   └── js/
-    │       ├── base.js             ← sidebar toggle, showToast(), showFormError()
+    │       ├── base.js
     │       ├── accounts/
     │       │   ├── login.js
     │       │   ├── user_list.js
@@ -116,18 +126,27 @@ bakery_project/                     ← root
     │       ├── production/
     │       │   ├── log.js
     │       │   └── history.js
-    │       └── sales/
-    │           ├── new.js
-    │           ├── history.js
-    │           └── detail.js
+    │       ├── sales/
+    │       │   ├── new.js
+    │       │   ├── history.js
+    │       │   └── detail.js
+    │       ├── waste/
+    │       │   ├── report.js
+    │       │   ├── history.js
+    │       │   └── pending.js
+    │       └── reports/
+    │           ├── production.js
+    │           ├── sales.js
+    │           ├── waste.js
+    │           └── summary.js
     │
     ├── staticfiles/                ← collectstatic output (not committed)
     │
     ├── templates/
-    │   ├── base.html               ← master layout
+    │   ├── base.html
     │   ├── accounts/
     │   │   ├── login.html
-    │   │   ├── dashboard.html      ← role-aware dashboard (3 in 1)
+    │   │   ├── dashboard.html
     │   │   ├── set_new_password.html
     │   │   ├── profile.html
     │   │   └── user_list.html
@@ -136,23 +155,32 @@ bakery_project/                     ← root
     │   ├── production/
     │   │   ├── log.html
     │   │   └── history.html
-    │   └── sales/
-    │       ├── new.html
-    │       ├── history.html
-    │       └── detail.html
+    │   ├── sales/
+    │   │   ├── new.html
+    │   │   ├── history.html
+    │   │   └── detail.html
+    │   ├── waste/
+    │   │   ├── report.html
+    │   │   ├── history.html
+    │   │   └── pending.html
+    │   └── reports/
+    │       ├── production.html
+    │       ├── sales.html
+    │       ├── waste.html
+    │       └── summary.html
     │
-    └── apps/                       ← all Django apps live here
+    └── apps/
         ├── __init__.py
-        ├── base_model.py           ← UUIDModel abstract base
-        ├── accounts/               ← auth, users, dashboard
-        ├── inventory/              ← snack items + stock
-        ├── production/             ← production logs
-        ├── sales/                  ← transactions + items
-        ├── waste/                  ← waste reports (Phase 4)
-        └── reports/                ← analytics views (Phase 4)
+        ├── base_model.py
+        ├── accounts/
+        ├── inventory/
+        ├── production/
+        ├── sales/
+        ├── waste/
+        └── reports/
 ```
 
-> **Rule:** Every Django app's `name` field in `apps.py` follows the pattern `apps.<appname>` — e.g., `apps.accounts`, `apps.inventory`. This is because apps live inside the `apps/` subdirectory.
+> **Rule:** Every Django app's `name` field in `apps.py` follows the pattern `apps.<appname>` — e.g., `apps.accounts`, `apps.inventory`. Apps live inside the `apps/` subdirectory.
 
 ---
 
@@ -175,11 +203,13 @@ pip install -r requirements.txt
 # Environment file — create bakery_app/.env
 SECRET_KEY=your-secret-key-here
 DEBUG=True
-DB_NAME=bakery_db
-DB_USER=postgres
-DB_PASSWORD=your-db-password
-DB_HOST=localhost
-DB_PORT=5432
+
+# PostgreSQL — uncomment when moving to paid hosting
+# DB_NAME=bakery_db
+# DB_USER=postgres
+# DB_PASSWORD=your-db-password
+# DB_HOST=localhost
+# DB_PORT=5432
 
 # Run migrations
 cd bakery_app
@@ -192,29 +222,30 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-### Key settings.py Configuration
+### Key `settings.py` Configuration
 
 ```python
-# INSTALLED_APPS (order matters)
-'django.contrib.humanize',
-'apps.accounts',
-'apps.inventory',
-'apps.production',
-'apps.sales',
-'apps.waste',
-'apps.reports',
+INSTALLED_APPS = [
+    ...
+    'django.contrib.humanize',
+    'apps.accounts',
+    'apps.inventory',
+    'apps.production',
+    'apps.sales',
+    'apps.waste',
+    'apps.reports',
+]
 
-# Auth
 AUTH_USER_MODEL = 'accounts.CustomUser'
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'accounts:dashboard'
 LOGOUT_REDIRECT_URL = 'accounts:login'
-
-# Timezone
 TIME_ZONE = 'Africa/Dar_es_Salaam'
-
-# Static files (Whitenoise)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Session hardening
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 60 * 60 * 8  # 8 hours
 
 # Context processor — injects pending_waste_count into ALL templates
 'apps.accounts.context_processors.bakery_context'
@@ -224,12 +255,14 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ```python
 'django.middleware.security.SecurityMiddleware',
-'whitenoise.middleware.WhiteNoiseMiddleware',       # must be 2nd
+'whitenoise.middleware.WhiteNoiseMiddleware',
+'apps.accounts.middleware.NoCacheMiddleware',          # prevents back-button after logout
 'django.contrib.sessions.middleware.SessionMiddleware',
 'django.middleware.common.CommonMiddleware',
 'django.middleware.csrf.CsrfViewMiddleware',
 'django.contrib.auth.middleware.AuthenticationMiddleware',
-'apps.accounts.middleware.ForcePasswordChangeMiddleware',  # custom — forces pw change
+'apps.accounts.middleware.ForcePasswordChangeMiddleware',
+'apps.accounts.middleware.AjaxSessionExpiredMiddleware', # returns 401 JSON on expired Ajax
 'django.contrib.messages.middleware.MessageMiddleware',
 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ```
@@ -253,7 +286,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 | `created_at` | DATETIME | auto |
 | `updated_at` | DATETIME | auto |
 
-> `first_name` and `last_name` from AbstractUser are set to `None` — not used. `full_name` replaces them.
+> `first_name` and `last_name` from AbstractUser are set to `None` — not used.
 
 ### `inventory_snackitem`
 
@@ -263,25 +296,23 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 | `name` | VARCHAR | unique |
 | `unit` | VARCHAR | choices: piece, dozen, kg, g, tray, pack |
 | `price` | DECIMAL(10,2) | selling price in TZS |
-| `current_stock` | POSITIVE INT | live stock count — updated atomically |
+| `current_stock` | POSITIVE INT | live stock — updated atomically |
 | `description` | TEXT | optional |
 | `is_active` | BOOLEAN | |
 | `created_by` | FK → CustomUser | |
-| `created_at` | DATETIME | |
-| `updated_at` | DATETIME | |
+| `created_at` / `updated_at` | DATETIME | |
 
 ### `production_productionlog`
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID PK | |
-| `snack_item` | FK → SnackItem | PROTECT (cannot delete item with logs) |
+| `snack_item` | FK → SnackItem | PROTECT |
 | `quantity` | POSITIVE INT | |
 | `production_date` | DATE | |
 | `notes` | TEXT | optional |
 | `logged_by` | FK → CustomUser | |
-| `created_at` | DATETIME | |
-| `updated_at` | DATETIME | |
+| `created_at` / `updated_at` | DATETIME | |
 
 ### `sales_saletransaction`
 
@@ -294,8 +325,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 | `status` | VARCHAR | choices: `completed`, `cancelled` |
 | `notes` | TEXT | optional |
 | `sold_by` | FK → CustomUser | |
-| `created_at` | DATETIME | |
-| `updated_at` | DATETIME | |
+| `created_at` / `updated_at` | DATETIME | |
 
 ### `sales_saletransactionitem`
 
@@ -305,10 +335,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 | `transaction` | FK → SaleTransaction (CASCADE) | related_name=`items` |
 | `snack_item` | FK → SnackItem | PROTECT |
 | `quantity` | POSITIVE INT | |
-| `unit_price` | DECIMAL(10,2) | price at time of sale |
-| `subtotal` | DECIMAL(12,2) | auto-calculated on model `.save()` — `qty × unit_price` |
-
-> **Critical:** Never pass `subtotal` explicitly in `.create()` calls — the model's `save()` method calculates it automatically.
+| `unit_price` | DECIMAL(10,2) | price snapshot at time of sale |
+| `subtotal` | DECIMAL(12,2) | auto-calculated on model `.save()` — never pass explicitly |
 
 ### `waste_wastereport`
 
@@ -317,27 +345,28 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 | `id` | UUID PK | |
 | `snack_item` | FK → SnackItem | PROTECT |
 | `quantity` | POSITIVE INT | |
-| `reason` | TEXT | |
+| `reason` | TEXT | whitespace-only input rejected by `clean_reason()` |
 | `waste_date` | DATE | |
 | `status` | VARCHAR | choices: `pending`, `approved`, `rejected` |
 | `reported_by` | FK → CustomUser | |
 | `reviewed_by` | FK → CustomUser | nullable |
 | `reviewed_at` | DATETIME | nullable |
-| `admin_notes` | TEXT | optional, admin's comment on review |
-| `created_at` | DATETIME | |
-| `updated_at` | DATETIME | |
+| `admin_notes` | TEXT | optional |
+| `created_at` / `updated_at` | DATETIME | |
 
 ### Stock Movement Rules (Critical)
 
-All stock changes use `SnackItem.objects.filter(pk=...).update(current_stock=F('current_stock') + N)` inside `transaction.atomic()` — **never `.save()`** (race condition risk).
+All stock changes use `SnackItem.objects.filter(pk=...).update(current_stock=F('current_stock') + N)` inside `transaction.atomic()` — **never `.save()`**.
 
 | Event | Stock Effect |
 |---|---|
-| Production log saved | `current_stock += quantity` |
-| Sale transaction completed | `current_stock -= quantity` |
-| Sale transaction cancelled (admin) | `current_stock += quantity` (restored) |
-| Production log deleted (admin) | `current_stock -= quantity` (reversed) |
-| Waste report approved (Phase 4) | `current_stock -= quantity` |
+| Production log saved | `+= quantity` |
+| Sale transaction completed | `-= quantity` |
+| Sale transaction cancelled (admin) | `+= quantity` (restored) |
+| Production log deleted (admin) | `-= quantity` (reversed) |
+| Waste report approved (admin) | `-= quantity` |
+
+> Waste approval uses `select_for_update()` to lock the row. If `current_stock < report.quantity`, approval is **blocked** — stock cannot go below zero.
 
 ---
 
@@ -345,32 +374,32 @@ All stock changes use `SnackItem.objects.filter(pk=...).update(current_stock=F('
 
 ### URL Namespaces
 
-| Namespace | Base URL | App |
-|---|---|---|
-| `accounts` | `/` | Dashboard, auth, users, profile |
-| `inventory` | `/inventory/` | Snack items |
-| `production` | `/production/` | Production logs |
-| `sales` | `/sales/` | Sale transactions |
-| `waste` | `/waste/` | Waste reports |
-| `reports` | `/reports/` | Analytics |
+| Namespace | Base URL |
+|---|---|
+| `accounts` | `/` |
+| `inventory` | `/inventory/` |
+| `production` | `/production/` |
+| `sales` | `/sales/` |
+| `waste` | `/waste/` |
+| `reports` | `/reports/` |
 
 ### Complete URL Map
 
 **accounts:**
 ```
-/                            → dashboard
-/login/                      → login_view
-/logout/                     → logout_view
-/set-new-password/           → set_new_password
-/profile/                    → profile
-/profile/edit/               → profile_edit
-/change-password/            → change_password
-/users/                      → user_list
-/users/add/                  → user_add
-/users/<uuid>/edit/          → user_edit
-/users/<uuid>/toggle-active/ → user_toggle_active
-/users/<uuid>/reset-password/→ user_reset_password
-/users/<uuid>/delete/        → user_delete
+/                              → dashboard
+/login/                        → login_view
+/logout/                       → logout_view
+/set-new-password/             → set_new_password
+/profile/                      → profile
+/profile/edit/                 → profile_edit
+/change-password/              → change_password
+/users/                        → user_list
+/users/add/                    → user_add
+/users/<uuid>/edit/            → user_edit
+/users/<uuid>/toggle-active/   → user_toggle_active
+/users/<uuid>/reset-password/  → user_reset_password
+/users/<uuid>/delete/          → user_delete
 ```
 
 **inventory:**
@@ -384,34 +413,33 @@ All stock changes use `SnackItem.objects.filter(pk=...).update(current_stock=F('
 
 **production:**
 ```
-/production/log/               → log (GET: render page | POST: JSON batch save)
-/production/history/           → history
-/production/<uuid>/delete/     → delete (admin only — reverses stock)
+/production/log/           → log (GET: render | POST: JSON batch)
+/production/history/       → history
+/production/<uuid>/delete/ → delete (admin only — reverses stock)
 ```
 
 **sales:**
 ```
-/sales/                        → history
-/sales/new/                    → new (GET: render page | POST: JSON cart checkout)
-/sales/<uuid>/detail/          → detail
-/sales/<uuid>/cancel/          → cancel (admin only — restores stock)
-/sales/item/<uuid>/price/      → get_item_price (Ajax endpoint)
+/sales/                    → history
+/sales/new/                → new (GET: render | POST: JSON cart)
+/sales/<uuid>/detail/      → detail
+/sales/<uuid>/cancel/      → cancel (admin only — restores stock)
+/sales/item/<uuid>/price/  → get_item_price (Ajax endpoint)
 ```
 
-**waste (Phase 4 — stub views exist, not yet implemented):**
+**waste:**
 ```
-/waste/report/         → report_view
-/waste/history/        → history_view
-/waste/pending/        → pending_view (admin only)
-/waste/<uuid>/review/  → review_view (admin only)
+/waste/report/             → report_view (GET + POST — production/sales only)
+/waste/history/            → history_view
+/waste/pending/            → pending_view (admin only)
+/waste/<uuid>/review/      → review_view (admin only, POST: approve/reject)
 ```
 
-**reports (Phase 4 — stub views exist, not yet implemented):**
+**reports:**
 ```
-/reports/              → home
-/reports/production/   → production_report
-/reports/sales/        → sales_report
-/reports/waste/        → waste_report
+/reports/production/   → production_report (admin + production)
+/reports/sales/        → sales_report (admin + sales)
+/reports/waste/        → waste_report (all roles)
 /reports/summary/      → summary_report (admin only)
 ```
 
@@ -423,28 +451,34 @@ All stock changes use `SnackItem.objects.filter(pk=...).update(current_stock=F('
 | `ProductionRequiredMixin` / `@production_required` | admin + production |
 | `SalesRequiredMixin` / `@sales_required` | admin + sales |
 
-All redirect to dashboard with error toast if unauthorized.
-
 ---
 
 ## 7. Authentication & Security
 
 ### Login Flow
 - Username + password only (no email login)
-- Username stored and compared as lowercase
+- Username stored and compared lowercase
 - Ajax POST returning JSON — no page reload on error
+- Hidden `<input name="next">` in login.html supports `?next=` redirect after login
+- `login.js` sends `next` explicitly in the POST data object (not via `serialize()`)
 
-### First Login / Password Reset Flow
-1. Admin creates user → default password = `USERNAME_IN_CAPS` (e.g., username `john` → password `JOHN`)
-2. `must_change_password = True` is set on the user record
-3. On next login, server detects this flag → returns redirect to `/set-new-password/`
-4. `ForcePasswordChangeMiddleware` blocks ALL URLs except `/set-new-password/` and `/logout/` until completed
-5. After user sets new password → `must_change_password = False`
+### First Login / Password Reset
+1. Admin creates user → default password = `USERNAME_IN_CAPS`
+2. `must_change_password = True`
+3. `ForcePasswordChangeMiddleware` blocks ALL URLs except `/set-new-password/` and `/logout/`
+4. After change → `must_change_password = False`
+5. Admin password reset restores same default + sets flag again
 
-**Admin password reset** resets back to `username.upper()` and sets `must_change_password = True` again.
+### Custom Middleware (`apps/accounts/middleware.py`)
 
-### Context Processor (`apps/accounts/context_processors.py`)
-`bakery_context` is registered globally and injects `pending_waste_count` (count of `WasteReport` objects with `status='pending'`) into every template — powers the sidebar badge and topbar notification bell for admins.
+**`ForcePasswordChangeMiddleware`** — blocks all URLs until password changed.
+
+**`NoCacheMiddleware`** — sets `Cache-Control: no-store` on every response. Prevents browser back-button access after logout.
+
+**`AjaxSessionExpiredMiddleware`** — intercepts 302 redirects to `/login/` on Ajax requests. Returns `{'success': False, 'session_expired': True, 'error': '...'}` with HTTP 401 instead of silently redirecting. `base.js` handles this globally via `$(document).ajaxError()` — shows a toast then redirects to `/login/?next=<current_path>` after 1.8 seconds.
+
+### Context Processor
+`bakery_context` injects `pending_waste_count` (pending `WasteReport` objects) into every template — powers sidebar badge and topbar bell for admin.
 
 ---
 
@@ -452,101 +486,101 @@ All redirect to dashboard with error toast if unauthorized.
 
 | Module / Action | Admin | Production | Sales |
 |---|---|---|---|
-| Inventory — view list | ✓ | ✓ | ✓ |
-| Inventory — add item | ✓ | ✓ | — |
+| Inventory — view | ✓ | ✓ | ✓ |
+| Inventory — add | ✓ | ✓ | — |
 | Inventory — edit / delete / toggle | ✓ | — | — |
-| Production — log batch | ✓ | ✓ | — |
-| Production — view history | ✓ (all users) | ✓ (own only) | — |
+| Production — log | ✓ | ✓ | — |
+| Production — history | ✓ (all) | ✓ (dept) | — |
 | Production — delete log | ✓ | — | — |
 | Sales — new transaction | ✓ | — | ✓ |
-| Sales — view history | ✓ (all users) | — | ✓ (own only) |
-| Sales — view detail | ✓ (all) | — | ✓ (own only) |
-| Sales — cancel transaction | ✓ | — | — |
-| Waste — report | ✓ | ✓ | ✓ |
-| Waste — view history | ✓ | ✓ | ✓ |
-| Waste — pending approvals | ✓ | — | — |
+| Sales — history | ✓ (all) | — | ✓ (dept) |
+| Sales — detail | ✓ | — | ✓ (own only) |
+| Sales — cancel | ✓ | — | — |
+| Waste — report | — | ✓ | ✓ |
+| Waste — history | ✓ (all) | ✓ (dept) | ✓ (dept) |
+| Waste — pending / approve | ✓ | — | — |
 | Reports — production | ✓ | ✓ | — |
 | Reports — sales | ✓ | — | ✓ |
 | Reports — waste | ✓ | ✓ | ✓ |
 | Reports — summary | ✓ | — | — |
 | User management | ✓ | — | — |
 
+> **Waste reporting:** Admin is **blocked** from the report form — redirected to Pending Approvals with an error if they attempt to access it.
+
 ---
 
 ## 9. Module Breakdown
 
-### Module A — Inventory (`apps/inventory`)
-- **Admin:** Full CRUD — add, edit, delete, toggle active/inactive
-- **Production:** Add only
-- **Sales:** View only (read-only table)
-- Stock column shows color-coded pill: green (ok, ≥10), amber (low, <10), red (out, 0)
-- Delete is blocked by Django's PROTECT FK if the item has any production/sales records — deactivation is the alternative
+### Inventory
+- Admin: full CRUD + toggle active/inactive
+- Production: add only
+- Sales: read-only
+- Stock pill: green (≥10), amber (<10), red (0)
+- Delete blocked by Django PROTECT FK if item has production/sales records
 
-### Module B — Production Logging (`apps/production`)
-**UX Pattern (batch/cart):**
-1. Select item from Tom Select searchable dropdown
-2. Enter quantity (Enter key triggers add)
-3. Client-side duplicate check before adding to batch
-4. Submit entire batch as JSON payload in a single POST
-5. Server validates all rows, saves atomically, increments stock
+### Production — Batch Logging
+1. Select item (Tom Select) → enter quantity → Enter to add
+2. Client-side duplicate check
+3. Submit JSON batch → server validates + saves atomically + increments stock
 
-**JSON payload:**
-```json
-{
-  "production_date": "2026-04-11",
-  "rows": [
-    { "snack_item": "uuid-here", "quantity": 48, "notes": "Morning batch" }
-  ]
-}
-```
-- Admin can view all users' logs; Production users see their own only
-- Admin can delete individual log entries (stock is reversed atomically)
+**Payload:** `{ production_date, rows: [{ snack_item, quantity, notes }] }`
 
-### Module C — Sales (`apps/sales`)
-**UX Pattern (POS cart):**
-1. Select item → quantity → Add to cart
-2. Client-side stock validation (prevents over-selling before hitting server)
-3. Running total updates in real-time
-4. Checkout sends JSON payload; server validates stock again server-side
-5. On success: redirect to transaction detail page (server returns `redirect_url`)
-6. Transaction items snapshot `unit_price` at time of sale — historical accuracy preserved even if item price changes later
+### Sales — POS Cart
+1. Select item → quantity → Add
+2. Client-side stock validation before adding
+3. Checkout → server validates stock again server-side → saves atomically → deducts stock
+4. Server returns `redirect_url` → JS redirects to transaction detail
+5. `unit_price` snapshotted at sale time — price changes don't affect history
 
-**JSON payload:**
-```json
-{
-  "sale_date": "2026-04-11",
-  "notes": "",
-  "rows": [{ "snack_item": "uuid-here", "quantity": 10 }]
-}
-```
-- Admin can cancel completed transactions (stock restored atomically)
-- `transaction_ref` format: `TXN-YYYYMMDD-XXXXX` (e.g., `TXN-20260411-00001`)
+**Payload:** `{ sale_date, notes, rows: [{ snack_item, quantity }] }`
 
-### Module D — Dashboards (`apps/accounts` → `dashboard.html`)
-Single template handles all three roles with `{% if request.user.role == '...' %}` branching.
+### Waste Module
+- Production/Sales report waste: item, quantity, reason, date
+- Admin reviews pending reports from `waste/pending.html`
+- On approval: stock deducted atomically using `select_for_update()`
+- Approval blocked if `current_stock < report.quantity`
+- `WasteReportForm.clean_reason()` rejects whitespace-only input
 
-**Admin context variables:**
-- `production_today` — total units produced today (all staff)
-- `sales_amount_today` — total sales amount today (TZS)
-- `sales_count_today` — number of completed transactions today
-- `pending_waste` — count of pending waste reports
-- `active_items` — count of active snack items
-- `recent_sales` — last 5 SaleTransaction objects
-- `recent_production` — last 5 ProductionLog objects
+**Department scoping for history:**
+- Admin: all reports
+- Production: `reported_by__role='production'`
+- Sales: `reported_by__role='sales'`
 
-**Production context variables:**
-- `my_today_logs` — today's ProductionLog queryset for this user
-- `my_today_total` — sum of quantities logged today by this user
-- `month_total` — sum of quantities this month by this user
-- `active_items` — all active SnackItem objects
+### Reports Module
+All reports use GET-based filter forms (shareable/bookmarkable URLs).
 
-**Sales context variables:**
-- `my_sales_amount_today` — today's sales total (TZS) by this user
-- `my_sales_count_today` — today's transaction count by this user
-- `month_total` — this month's sales total (TZS) by this user
-- `top_item` — dict with `snack_item__name` and `total_qty` (most sold this month)
-- `recent_sales` — last 5 SaleTransaction objects by this user
-- `available_items` — count of active items with stock > 0
+| Report | Access | Filters |
+|---|---|---|
+| Production | Admin + Production | Date range, user, item |
+| Sales | Admin + Sales | Date range, user, item |
+| Waste | All roles | Date range, status, reported_by |
+| Summary | Admin only | Cross-department combined view |
+
+**Data scope:**
+- Production report: `logged_by__role__in=['admin', 'production']`
+- Sales report: `sold_by__role__in=['admin', 'sales']`
+
+**Stat cards** are computed server-side from the filtered queryset — not from DataTables.
+
+**`footerCallback`** on production report sums quantity column from `{ search: 'applied' }` rows only — footer total updates as user filters.
+
+**Top item:** `.values(...).annotate(total=Sum(...)).order_by('-total').first()` — returns `None` if no data, template guards with `{% if top_item %}`.
+
+### Dashboards
+Single `dashboard.html` handles all three roles with `{% if request.user.role == '...' %}` branching.
+
+**Admin:** production_today, sales_amount_today, sales_count_today, pending_waste, active_items, recent_sales (×5), recent_production (×5)
+
+**Production:** my_today_logs, my_today_total, month_total, active_items
+
+**Sales:** my_sales_amount_today, my_sales_count_today, month_total, top_item, recent_sales (×5), available_items
+
+### Profile Edit — Role-Based Rules
+- **Admin:** can update Full Name, Username, Phone
+- **Production / Sales:** Username and Phone only — Full Name rendered as disabled with "contact admin to change" hint
+- `ProfileEditForm` receives `user_role` kwarg; pops `full_name` from `self.fields` server-side for non-admins (prevents malicious POST)
+- `clean_username()` strips, lowercases, checks uniqueness excluding own pk
+- After username change, user must log in with the new username
 
 ---
 
@@ -562,38 +596,45 @@ Single template handles all three roles with `{% if request.user.role == '...' %
 --clr-brown-dark:  #4a2828    /* sidebar background */
 --clr-amber-light: #fdf3e3    /* table headers, offcanvas headers */
 --clr-amber-pale:  #fef9f0    /* table row hover */
+--clr-sidebar-w:   260px
+--clr-topbar-h:    60px
 ```
 
 ### Layout
-- Fixed sidebar: 260px wide (`--clr-sidebar-w`)
-- Fixed topbar: 60px tall (`--clr-topbar-h`)
-- Main content: `margin-left: 260px; margin-top: 60px`
-- On mobile (< 992px): sidebar slides off-screen, toggle button appears
-- Footer: matches sidebar offset on desktop, full-width on mobile
+- Fixed sidebar (260px) + fixed topbar (60px) + scrollable main content
+- Mobile (< 992px): sidebar slides off-screen, toggle button appears, overlay tap-to-close
+- Footer: offsets with sidebar on desktop, full-width on mobile
 
 ### CDN Load Order in `base.html`
 
 **In `<head>`:**
 ```
-Bootstrap 5 CSS → Bootstrap Icons → Tom Select CSS → base.css → {% block extra_css %}
+Bootstrap 5 CSS → Bootstrap Icons → Tom Select CSS → Tom Select JS → base.css → {% block extra_css %}
 ```
-> Tom Select JS loads in `<head>` (before jQuery — it's vanilla JS)
+> Tom Select JS loads in `<head>` before jQuery — it's vanilla JS, not jQuery-dependent
 
 **Before `</body>`:**
 ```
-jQuery → Bootstrap 5 JS → base.js → {% block extra_js %}
+jQuery → Bootstrap 5 JS bundle → base.js → {% block extra_js %}
 ```
-> DataTables CDN scripts load per-page inside `{% block extra_js %}`, never in base.html
 
-### Files Per Page Rule
-Every page has **exactly three files** — no exceptions:
+> DataTables CDN scripts load **per-page** inside `{% block extra_js %}`, never in base.html
+
+### Files Per Page Rule — No Exceptions
 ```
 templates/[app]/[page].html
 static/css/[app]/[page].css
 static/js/[app]/[page].js
 ```
 
-### Form Convention — Bootstrap Floating Labels with Icon Prefix
+### Reports CSS Architecture
+`reports/base_report.css` is the **shared** stylesheet for all report pages. The four per-page CSS files each start with:
+```css
+@import url('../reports/base_report.css');
+/* page-specific overrides below */
+```
+
+### Form Convention — Floating Labels with Icon Prefix
 ```html
 <div class="input-group">
   <span class="input-group-text"><i class="bi bi-person"></i></span>
@@ -604,10 +645,6 @@ static/js/[app]/[page].js
   </div>
 </div>
 ```
-
-### Add/Edit → Bootstrap Offcanvas (slides from right, 420px wide)
-### Confirmations (delete, reset) → Bootstrap Modal (centered, small)
-### Tables → DataTables with copy/excel/pdf/print buttons
 
 ### Standard DataTables Config
 ```javascript
@@ -632,15 +669,44 @@ $('#table-id').DataTable({
 - Templates: `{{ value|floatformat:0|intcomma }}` (requires `{% load humanize %}`)
 - JavaScript: `number.toLocaleString('en-US')`
 
-### Status Badges
+### Component Reference
+
+**Buttons:**
 ```html
-<span class="status-badge active">Active</span>       <!-- green -->
-<span class="status-badge blocked">Inactive</span>    <!-- red -->
-<span class="status-badge completed">Completed</span> <!-- blue -->
-<span class="status-badge cancelled">Cancelled</span> <!-- grey -->
-<span class="status-badge pending">Pending</span>     <!-- amber -->
-<span class="status-badge approved">Approved</span>   <!-- green -->
-<span class="status-badge rejected">Rejected</span>   <!-- red -->
+<button class="btn-primary-bakery">Primary</button>
+<button class="btn-outline-bakery">Outline</button>
+<button class="btn-danger-bakery">Danger</button>
+<button class="btn-approve-bakery">Approve (green)</button>
+```
+
+**Status badges:**
+```html
+<span class="status-badge active">Active</span>
+<span class="status-badge blocked">Inactive</span>
+<span class="status-badge completed">Completed</span>
+<span class="status-badge cancelled">Cancelled</span>
+<span class="status-badge pending">Pending</span>
+<span class="status-badge approved">Approved</span>
+<span class="status-badge rejected">Rejected</span>
+```
+
+**Stock pills:**
+```html
+<span class="stock-pill ok">45</span>
+<span class="stock-pill low">8</span>
+<span class="stock-pill out">0</span>
+```
+
+**Action buttons (table rows):**
+```html
+<button class="btn-action edit"    data-url="..."><i class="bi bi-pencil"></i></button>
+<button class="btn-action delete"  data-url="..."><i class="bi bi-trash"></i></button>
+<button class="btn-action block"   data-url="..."><i class="bi bi-slash-circle"></i></button>
+<button class="btn-action unblock" data-url="..."><i class="bi bi-check-circle"></i></button>
+<button class="btn-action approve" data-url="..."><i class="bi bi-check-lg"></i></button>
+<button class="btn-action reject"  data-url="..."><i class="bi bi-x-lg"></i></button>
+<a      class="btn-action view"    href="..."><i class="bi bi-eye"></i></a>
+<button class="btn-action cancel"  data-url="..."><i class="bi bi-x-circle"></i></button>
 ```
 
 ---
@@ -648,7 +714,6 @@ $('#table-id').DataTable({
 ## 11. JavaScript Conventions
 
 ### URLs — Never Hardcoded in JS
-
 ```html
 <!-- Static URL (no pk) → on form tag -->
 <form id="form-add-item" data-url="{% url 'inventory:item_add' %}">
@@ -657,16 +722,13 @@ $('#table-id').DataTable({
 <button data-url="{% url 'inventory:item_edit' item.pk %}">
 ```
 
-In JS: `const url = $('#form-id').data('url');` or `$('#form-edit').data('url', $(this).data('url'));`
-
-### CSRF Token — Ajax POST without a Form
+### CSRF — Pages with Ajax POST but No Form
 ```html
-<!-- Add this immediately after {% block content %} on pages with no form -->
 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
 ```
-JS reads it: `$('[name=csrfmiddlewaretoken]').val()`
+Place immediately after `{% block content %}`. JS reads: `$('[name=csrfmiddlewaretoken]').val()`
 
-### JSON POST Pattern (Production Log, New Sale)
+### JSON POST (batch/cart submissions)
 ```javascript
 $.ajax({
   url: url,
@@ -677,7 +739,7 @@ $.ajax({
 });
 ```
 
-### Standard Form POST Pattern
+### Standard Form POST
 ```javascript
 $.ajax({
   url: url,
@@ -686,29 +748,34 @@ $.ajax({
 });
 ```
 
+> When building a manual data object (not `serialize()`), you must explicitly include every field — including `next`, hidden inputs, etc.
+
 ### JsonResponse Conventions (backend)
 ```python
-# Success
 return JsonResponse({'success': True, 'message': 'Done.'})
+return JsonResponse({'success': False, 'errors': form.errors})    # plural — form validation dict
+return JsonResponse({'success': False, 'error': 'Single msg.'})   # singular — other errors
+```
 
-# Form validation errors
-return JsonResponse({'success': False, 'errors': form.errors})  # dict, plural key
-
-# Single error
-return JsonResponse({'success': False, 'error': 'Something went wrong.'})  # string, singular key
+### Session Expiry (global in `base.js`)
+```javascript
+$(document).ajaxError(function (event, xhr) {
+  if (xhr.status === 401) {
+    // parse session_expired flag → show toast → redirect to /login/?next=current_path after 1.8s
+  }
+});
 ```
 
 ### Global Helpers (`base.js`)
 ```javascript
-// Toast notifications
-showToast('success', 'User created.');
-showToast('error', 'Something went wrong.');
-showToast('warning', 'Low stock detected.');
-showToast('info', 'Note: ...');
+showToast('success' | 'error' | 'warning' | 'info', 'message');
+showFormError('#error-div-id', 'message');
+hideFormError('#error-div-id');
 
-// Form error display
-showFormError('#form-id-error', 'Error message here.');
-hideFormError('#form-id-error');
+// Tom Select
+const selects = makeSearchable('#my-select', { placeholder: '...' });
+const mySelect = selects['my-select'];
+mySelect.clear(); // visual reset — must use stored instance
 ```
 
 ### Form Error HTML (required on every form)
@@ -718,30 +785,21 @@ hideFormError('#form-id-error');
 </div>
 ```
 
-### Tom Select — Searchable Selects
-```javascript
-// makeSearchable() is a global utility defined in base.js
-// Returns an object keyed by element id
-const selects = makeSearchable('#item-select', { placeholder: 'Search items...' });
-const itemSelect = selects['item-select'];
-
-// To visually reset after use:
-itemSelect.clear();  // must use stored instance — DOM property lookup is unreliable
-```
-
 ---
 
 ## 12. Deployment — PythonAnywhere (Free Tier)
 
-- **DB:** SQLite (`bakery_db.sqlite3`) — PostgreSQL config preserved in settings.py but commented out
-- **Static files:** Served by Whitenoise via `collectstatic`
-- **`DEBUG = False`** in production via `.env`
-- Run `python manage.py collectstatic` before each deployment
+- **Live URL:** `yourusername.pythonanywhere.com`
+- **DB:** SQLite (`bakery_app/db.sqlite3`) — PostgreSQL config preserved but commented out
+- **Static files:** `collectstatic` → `/home/yourusername/bakery_app/staticfiles/` served by Whitenoise
+- **`DEBUG = False`** via `.env`
+- **WSGI file** points to `bakery_app.settings`
+- Run `python manage.py collectstatic` before each deployment push
 
-**To switch to PostgreSQL (paid tier):**
-1. Uncomment PostgreSQL config in `settings.py`
-2. Set `DB_*` variables in `.env`
-3. Run `python manage.py migrate`
+**Deliverables shipped:**
+- Live web application on PythonAnywhere
+- Source code on GitHub (`github.com/Fidon/bakery_app`)
+- User Manual — `Tumaini_Bakery_User_Manual.docx` (covers all 3 roles)
 
 ---
 
@@ -752,42 +810,38 @@ itemSelect.clear();  // must use stored instance — DOM property lookup is unre
 | **Phase 1** | Project foundation, models, base layout, login | ✅ Complete |
 | **Phase 2** | Auth flow, user management, permissions, profile | ✅ Complete |
 | **Phase 3** | Inventory, Production, Sales, Dashboards | ✅ Complete |
-| **Phase 4** | Waste module, Reports & Analytics | 🔲 Not Started |
-| **Phase 5** | QA, Polish, Production Deployment hardening | 🔲 Not Started |
+| **Phase 4** | Waste module, Reports & Analytics | ✅ Complete |
+| **Phase 5** | Security hardening, session management, deployment | ✅ Complete |
+
+**The application is fully built and live.**
 
 ---
 
-## 14. Phase 4 — What to Build Next
+## 14. Upgrading to PostgreSQL
 
-### A — Waste Module (`apps/waste`)
+When moving off PythonAnywhere free tier to a paid/VPS host:
 
-**Role access:** Admin approves/rejects; Production + Sales report waste
-
-**Pages to build:**
-- `waste/report.html` — form: item (Tom Select), quantity, reason, date
-- `waste/history.html` — DataTable with status badges, filterable
-- `waste/pending.html` — Admin only; approve/reject with notes
-
-**Critical implementation note:**
-When admin approves a waste report → `SnackItem.current_stock -= quantity` atomically. If stock would go below 0, **block the approval** with a clear error — do not allow negative stock.
-
-**URL patterns:**
+1. Uncomment in `settings.py`:
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
+    }
+}
 ```
-/waste/report/         → report_view (GET + POST)
-/waste/history/        → history_view
-/waste/pending/        → pending_view (admin only)
-/waste/<uuid>/review/  → review_view (admin only, POST: approve/reject)
-```
+2. Uncomment `DB_*` variables in `.env` with production values
+3. `pip install psycopg2-binary` and add to `requirements.txt`
+4. `python manage.py migrate`
+5. Update `ALLOWED_HOSTS` with new domain
+6. Set up Nginx + Gunicorn
+7. Configure HTTPS via Let's Encrypt
 
-### B — Reports Module (`apps/reports`)
-
-**All report pages use:** DataTables with copy/excel/pdf/print + filter form (GET-based, not POST — for shareable/bookmarkable URLs)
-
-**Pages to build:**
-- `reports/production.html` — filter: date range, user, item
-- `reports/sales.html` — filter: date range, user, item; totals row
-- `reports/waste.html` — filter: date range, status, reported_by
-- `reports/summary.html` — admin only; cross-department combined view
+> SQLite is adequate for the bakery's user count. Upgrade before scaling beyond ~10 concurrent users due to SQLite write locking.
 
 ---
 
@@ -795,13 +849,19 @@ When admin approves a waste report → `SnackItem.current_stock -= quantity` ato
 
 | Issue | Root Cause | Fix |
 |---|---|---|
-| Delete toast showed "undefined" | `pk` variable scope issue — row reference lost after modal opened | Store row reference on the modal element: `$('#modal').data('row', $row)` |
-| Tom Select wouldn't visually reset | Using DOM property lookup instead of stored instance | Always store the return value of `new TomSelect()` and call `.clear()` on it directly |
-| CSS truncation not working on DataTables cells | DataTables overrides inline styles | Use `!important` on truncation CSS |
-| CSRF 403 on Ajax POST pages without forms | No `csrfmiddlewaretoken` in DOM | Add hidden `<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />` immediately after `{% block content %}` |
-| Race condition on stock updates | Using `.save()` loads the full object, increments in Python, then saves — concurrent requests cause double-counting | Always use `filter().update(current_stock=F('current_stock') + N)` inside `transaction.atomic()` |
-| `{% empty %}` block crashes DataTables | DataTables replaces tbody content — Django's empty block conflicts | Never use `{% empty %}` on tables managed by DataTables |
-| `is_blocked` field confusion | Field was originally planned, then removed | Activation/deactivation uses Django's built-in `is_active` only — no `is_blocked` field exists |
-| App import errors | App name in `apps.py` not matching `apps/<name>` directory pattern | All app `name` fields in `apps.py` must be `apps.<appname>` |
+| Delete toast showed "undefined" | `pk` variable scope — row reference lost after modal opened | Store row on modal element: `$('#modal').data('row', $row)` |
+| Tom Select wouldn't visually reset | DOM property lookup instead of stored instance | Always store `makeSearchable()` return value and call `.clear()` on it directly |
+| CSS truncation failing on DataTables cells | DataTables overrides inline styles | Use `!important` on truncation CSS |
+| CSRF 403 on Ajax POST pages without forms | No `csrfmiddlewaretoken` in DOM | Add hidden input `value="{{ csrf_token }}"` immediately after `{% block content %}` |
+| Race condition on stock updates | `.save()` loads full object → Python increments → saves; concurrent requests cause double-counting | Always `filter().update(current_stock=F(...) + N)` inside `transaction.atomic()` |
+| `{% empty %}` crashes DataTables | DataTables replaces tbody — Django's empty block conflicts | Never use `{% empty %}` on DataTables-managed tables |
+| `is_blocked` confusion | Field was originally planned, then removed | Activation/deactivation uses Django's built-in `is_active` only |
+| App import errors | `name` in `apps.py` not matching directory path | All app `name` fields must be `apps.<appname>` |
+| Back-button showed authenticated pages after logout | Browser cached responses | `NoCacheMiddleware` sets `Cache-Control: no-store` on every response |
+| Ajax silently redirected to login on session expiry | Django returns 302; jQuery follows it silently | `AjaxSessionExpiredMiddleware` intercepts 302→login redirects on XHR and returns 401 JSON instead; `base.js` handles globally |
+| Login `?next=` redirect not working with Ajax login | `serialize()` on manual data objects doesn't auto-include hidden fields | `login.js` explicitly includes `next: $("input[name=next]").val()` in the POST data object |
+| Negative stock on waste approval | No stock check before deducting | `select_for_update()` locks the row; approval blocked if `current_stock < quantity` |
 
 ---
+
+*Last updated: May 2026 — Project complete and deployed.*
